@@ -669,42 +669,35 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
         }
     }
 
-    if (comboBoxThatHasChanged == seqMode) {
-        bool tempoEnabled = seqMode->getSelectedId() > 1;
-        bool arpEnabled = seqMode->getSelectedId() == 2;
-        bool seqEnabled = seqMode->getSelectedId() == 3;
+    // Not a goo idea !
+    //if (comboBoxThatHasChanged == seqMode) {
+    //    bool arpEnabled = seqMode->getSelectedId() == 2;
+    //    bool seqEnabled = seqMode->getSelectedId() == 3;
 
-        for (int l = 1; l <= 3; l++) {
-            seqAllLabels[l]->setEnabled(tempoEnabled);
-        }
-        for (int l = 4; l <= 7; l++) {
-            seqAllLabels[l]->setEnabled(arpEnabled);
-        }
-        seqBpm->setEnabled(tempoEnabled);
-        seqGroove->setEnabled(tempoEnabled);
-        seqAmount->setEnabled(tempoEnabled);
+    //    for (int l = 4; l <= 7; l++) {
+    //        seqAllLabels[l]->setEnabled(arpEnabled);
+    //    }
+    //    arpGroup->setEnabled(arpEnabled);
+    //    seqDirection->setEnabled(arpEnabled);
+    //    seqRange->setEnabled(arpEnabled);
+    //    seqPattern->setEnabled(arpEnabled);
+    //    seqDivision->setEnabled(arpEnabled);
 
-        arpGroup->setEnabled(arpEnabled);
-        seqDirection->setEnabled(arpEnabled);
-        seqRange->setEnabled(arpEnabled);
-        seqPattern->setEnabled(arpEnabled);
-        seqDivision->setEnabled(arpEnabled);
-
-        for (int s = 0; s < NUMBER_OF_STEPS; s++) {            
-            seqStepLabel[s]->setEnabled(seqEnabled);
-            seqRhythmic[s]->setEnabled(seqEnabled);
-            seqNoteOctave[s]->setEnabled(seqEnabled);
-            seqVelocity[s]->setEnabled(seqEnabled);
-        }
-        seqGroup->setEnabled(seqEnabled);
-        seqPullButton->setEnabled(seqEnabled);
-        seqPushButton->setEnabled(seqEnabled);
-        seqRandomizeButton->setEnabled(seqEnabled);
-        seqAllLabels[8]->setEnabled(seqEnabled);
-        seqNumberOfStep->setEnabled(seqEnabled);
-        seqScore->setEnabled(seqEnabled);
-        seqScore->repaint();
-    }
+    //    for (int s = 0; s < NUMBER_OF_STEPS; s++) {            
+    //        seqStepLabel[s]->setEnabled(seqEnabled);
+    //        seqRhythmic[s]->setEnabled(seqEnabled);
+    //        seqNoteOctave[s]->setEnabled(seqEnabled);
+    //        seqVelocity[s]->setEnabled(seqEnabled);
+    //    }
+    //    seqGroup->setEnabled(seqEnabled);
+    //    seqPullButton->setEnabled(seqEnabled);
+    //    seqPushButton->setEnabled(seqEnabled);
+    //    seqRandomizeButton->setEnabled(seqEnabled);
+    //    seqAllLabels[8]->setEnabled(seqEnabled);
+    //    seqNumberOfStep->setEnabled(seqEnabled);
+    //    seqScore->setEnabled(seqEnabled);
+    //    seqScore->repaint();
+    //}
 }
 
 

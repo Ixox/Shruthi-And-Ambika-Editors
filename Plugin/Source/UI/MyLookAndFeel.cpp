@@ -66,14 +66,11 @@ void MyLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, int h
 
 	const auto bounds = Rectangle<int>(x, y, width, height).toFloat().reduced(5);
 
-	auto radius = jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
-	const auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-	auto lineW = jmin(4.0f, radius * 0.5f);
-	auto arcRadius = radius - lineW * 0.5f;
+    auto radius = jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
+    const auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
+    auto lineW = jmin(8.0f, radius * 0.5f);
+    auto arcRadius = radius - lineW * 0.5f;
 
-    //g.setColour(slider.findColour(ComboBox::backgroundColourId));
-    //g.fillEllipse(bounds.getCentreX()- radius,
-    //    bounds.getCentreY() - radius, radius*2, radius*2);
 
 
 
@@ -104,11 +101,10 @@ void MyLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, int h
 			true);
 
         g.setColour(fill);
-		g.strokePath(valueArc, PathStrokeType(lineW , PathStrokeType::curved, PathStrokeType::butt));
+		g.strokePath(valueArc, PathStrokeType(lineW*.4f , PathStrokeType::curved, PathStrokeType::butt));
 
-		const auto thumbWidth = lineW * 2.0f;
-		const Point<float> thumbPoint(bounds.getCentreX() + arcRadius * std::cos(toAngle - float_Pi * 0.5f),
-			bounds.getCentreY() + arcRadius * std::sin(toAngle - float_Pi * 0.5f));
+		const Point<float> thumbPoint(bounds.getCentreX() + radius * std::cos(toAngle - float_Pi * 0.5f),
+			bounds.getCentreY() + radius * std::sin(toAngle - float_Pi * 0.5f));
 
         g.setColour(slider.findColour(Slider::thumbColourId));
         g.drawLine(bounds.getCentreX(), bounds.getCentreY(), thumbPoint.getX(), thumbPoint.getY());
