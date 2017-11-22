@@ -860,7 +860,7 @@ void ShruthiAudioProcessor::sendSequencer(shruthi::SequenceStep steps[16]) {
     sendSysex(MidiMessage::createSysExMessage(message, index));
 }
 
-void ShruthiAudioProcessor::sendSysex(MidiMessage& sysexMessage) {
+void ShruthiAudioProcessor::sendSysex(const MidiMessage& sysexMessage) {
     midiOutBuffer.addEvent(sysexMessage, 8);
     flushMidiOut();
 }

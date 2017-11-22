@@ -121,7 +121,7 @@ public:
     void requestPatchTransfer();
     void decodeSysexPatch(const uint8* message);
     void encodeSysexPatch(uint8 message[184]);
-    void sendSysex(MidiMessage& sysexMessage);
+    void sendSysex(const MidiMessage& sysexMessage);
     void setShruthiSequencer(ShruthiSequencer* shruthiSeq);
 
     // CanSendSequencerClass
