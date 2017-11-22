@@ -70,6 +70,9 @@ void SequencerScore::paint (Graphics& g)
 
     //[UserPaint] Add your own custom painting code here..
 
+    if (!isEnabled()) {
+        return;
+    }
     int noteType[] = { 1, 2 ,1, 2, 1, 1 , 2, 1, 2, 1, 2, 1 };
     String noteStrings[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A" , "A#", "B" };
     Colour whiteTrans = Colour::fromRGBA(255, 255, 255, 50);

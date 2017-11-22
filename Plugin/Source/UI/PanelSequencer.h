@@ -108,9 +108,9 @@ private:
     ScopedPointer<Slider> seqVelocity[NUMBER_OF_STEPS];
     ScopedPointer<Slider> seqController[NUMBER_OF_STEPS];
     ScopedPointer<SequencerScore> seqScore;
-    ScopedPointer<TextButton> pushButton;
-    ScopedPointer<TextButton> pullButton;
-    ScopedPointer<TextButton> randomizeButton;
+    ScopedPointer<TextButton> seqPushButton;
+    ScopedPointer<TextButton> seqPullButton;
+    ScopedPointer<TextButton> seqRandomizeButton;
     int stepControl[NUMBER_OF_STEPS];
     CanSendSequencerClass* canSendSequencer;
     struct shruthi::SequencerSettings sequencerSettings;

@@ -27,7 +27,7 @@ MidiDevice::MidiDevice() {
 
 	PropertiesFile::Options options;
 	options.applicationName = ProjectInfo::projectName;
-	options.osxLibrarySubFolder = "Library/Application Support";
+	options.osxLibrarySubFolder = "Application Support";
 	options.filenameSuffix = ".settings";
 	options.storageFormat = PropertiesFile::StorageFormat::storeAsXML;
 	pfm2AppProps.setStorageParameters(options);

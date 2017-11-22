@@ -74,7 +74,6 @@ PanelSequencer::PanelSequencer ()
     for (int i = 0; seqModeItems[i] != nullptr; i++) {
         seqMode->addItem(seqModeItems[i], i + 1);
     }
-    seqMode->setSelectedId(1);
     seqMode->setScrollWheelEnabled(true);
     seqMode->addListener(this);
 
@@ -162,19 +161,19 @@ PanelSequencer::PanelSequencer ()
     seqDivision->setScrollWheelEnabled(true);
     seqDivision->addListener(this);
 
-    addAndMakeVisible(pushButton = new TextButton("push button"));
-    pushButton->setTooltip(TRANS("Push all Sequencer parameters from plugin to shruthi"));
-    pushButton->setButtonText("PUSH To Shruthi");
-    pushButton->addListener(this);
+    addAndMakeVisible(seqPushButton = new TextButton("push button"));
+    seqPushButton->setTooltip(TRANS("Push all Sequencer parameters from plugin to shruthi"));
+    seqPushButton->setButtonText("PUSH To Shruthi");
+    seqPushButton->addListener(this);
 
-    addAndMakeVisible(pullButton = new TextButton("pull button"));
-    pullButton->setTooltip("Pull all Sequencer parameters from plugin to shruthi");
-    pullButton->setButtonText("PULL from Shruthi");
-    pullButton->addListener(this);
+    addAndMakeVisible(seqPullButton = new TextButton("pull button"));
+    seqPullButton->setTooltip("Pull all Sequencer parameters from plugin to shruthi");
+    seqPullButton->setButtonText("PULL from Shruthi");
+    seqPullButton->addListener(this);
 
-    addAndMakeVisible(randomizeButton = new TextButton("Randomize Sequencer"));
-    randomizeButton->setButtonText("Seq Randomizer");
-    randomizeButton->addListener(this);
+    addAndMakeVisible(seqRandomizeButton = new TextButton("Randomize Sequencer"));
+    seqRandomizeButton->setButtonText("Seq Randomizer");
+    seqRandomizeButton->addListener(this);
 
     const char* stepStepLabelStrings[] = { "E\nv\ne\nn\nt", "N\no\nt\ne", "V\ne\nl\no", "C\nt\nr\nl" };
     for (int l = 0; l < 4; l++) {
@@ -252,6 +251,7 @@ PanelSequencer::PanelSequencer ()
         seqNoteOctave[s]->setSelectedId((int)(note / 12) - 2);
         sequencerSettings.steps[s].set_note(36 + s * 3);
     }
+
     //[/Constructor]
 }
 
@@ -287,7 +287,12 @@ void PanelSequencer::paint (Graphics& g)
     Rectangle<int> notesBounds = seqBounds;
     // Label
     int labelSize = notesBounds.getWidth() / 17;
-    g.setColour(Colours::whitesmoke);
+    if (seqGroup->isEnabled()) {
+        g.setColour(Colours::whitesmoke);
+    }
+    else {
+        g.setColour(Colours::grey);
+    }
     g.drawFittedText("Step#", notesBounds.removeFromTop(30).removeFromLeft(labelSize), Justification::centredTop, 1);
     //space
     notesBounds.removeFromTop(10);
@@ -300,7 +305,6 @@ void PanelSequencer::paint (Graphics& g)
     // Space
     notesBounds.removeFromTop(10);
     notesBounds.removeFromTop(notesBounds.getHeight() / 2);
-    g.setColour(Colours::whitesmoke);
     g.drawFittedText("Velocity", notesBounds.removeFromTop(notesBounds.getHeight() / 2).removeFromLeft(labelSize), Justification::centred, 1);
     g.drawFittedText("Control", notesBounds.removeFromLeft(labelSize), Justification::centred, 1);
 
@@ -407,11 +411,11 @@ void PanelSequencer::resized()
 
     // Top area (number of step and randomizer;
     Rectangle<int> scoreTopArea = totalBounds.removeFromTop(30);
-    pushButton->setBounds(scoreTopArea.removeFromRight(120).reduced(10, 5));
-    randomizeButton->setBounds(scoreTopArea.removeFromRight(120).reduced(10, 5));
+    seqPushButton->setBounds(scoreTopArea.removeFromRight(120).reduced(10, 5));
+    seqRandomizeButton->setBounds(scoreTopArea.removeFromRight(120).reduced(10, 5));
 
     scoreTopArea.removeFromLeft(scoreTopArea.getWidth() / 17);
-    pullButton->setBounds(scoreTopArea.removeFromLeft(120).reduced(10, 5));
+    seqPullButton->setBounds(scoreTopArea.removeFromLeft(120).reduced(10, 5));
     Rectangle<int> numberOfStepLabelBounds = scoreTopArea.removeFromLeft(scoreTopArea.getWidth() / 2);
     seqAllLabels[8]->setBounds(numberOfStepLabelBounds.removeFromRight(100).reduced(0, 5));
 
@@ -461,16 +465,16 @@ void PanelSequencer::resized()
 
 
 void PanelSequencer::buttonClicked(Button *buttonThatWasClicked) {
-    if (buttonThatWasClicked == pullButton) {
+    if (buttonThatWasClicked == seqPullButton) {
         canSendSequencer->requestSequencerTransfer();
     }
-    else if (buttonThatWasClicked == pushButton) {
+    else if (buttonThatWasClicked == seqPushButton) {
         updateSequencerSteps();
         if (canSendSequencer != nullptr) {
             canSendSequencer->sendSequencer(sequencerSettings.steps);
         }
     }
-    else if (buttonThatWasClicked == randomizeButton) {
+    else if (buttonThatWasClicked == seqRandomizeButton) {
         srand(time(NULL));
         int notes[NUMBER_OF_STEPS];
         for (int s = 0; s < NUMBER_OF_STEPS; s++) {
@@ -507,8 +511,7 @@ void PanelSequencer::buildParameters() {
 
     updateComboFromParameter(seqNumberOfStep);
 
-    checkParamExistence(seqBpm->getName());
-    componentMap.set(seqBpm->getName(), seqBpm);
+    updateComboAndSliderFromParameter(seqBpm);
     updateComboFromParameter(seqGroove);
     updateSliderFromParameter(seqAmount);
 
@@ -669,6 +672,7 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
     if (comboBoxThatHasChanged == seqMode) {
         bool tempoEnabled = seqMode->getSelectedId() > 1;
         bool arpEnabled = seqMode->getSelectedId() == 2;
+        bool seqEnabled = seqMode->getSelectedId() == 3;
 
         for (int l = 1; l <= 3; l++) {
             seqAllLabels[l]->setEnabled(tempoEnabled);
@@ -680,10 +684,26 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
         seqGroove->setEnabled(tempoEnabled);
         seqAmount->setEnabled(tempoEnabled);
 
+        arpGroup->setEnabled(arpEnabled);
         seqDirection->setEnabled(arpEnabled);
         seqRange->setEnabled(arpEnabled);
         seqPattern->setEnabled(arpEnabled);
         seqDivision->setEnabled(arpEnabled);
+
+        for (int s = 0; s < NUMBER_OF_STEPS; s++) {            
+            seqStepLabel[s]->setEnabled(seqEnabled);
+            seqRhythmic[s]->setEnabled(seqEnabled);
+            seqNoteOctave[s]->setEnabled(seqEnabled);
+            seqVelocity[s]->setEnabled(seqEnabled);
+        }
+        seqGroup->setEnabled(seqEnabled);
+        seqPullButton->setEnabled(seqEnabled);
+        seqPushButton->setEnabled(seqEnabled);
+        seqRandomizeButton->setEnabled(seqEnabled);
+        seqAllLabels[8]->setEnabled(seqEnabled);
+        seqNumberOfStep->setEnabled(seqEnabled);
+        seqScore->setEnabled(seqEnabled);
+        seqScore->repaint();
     }
 }
 

@@ -100,8 +100,8 @@ private:
 
     //==============================================================================
     ScopedPointer<TabbedComponent> tabbedComponent;
-    ScopedPointer<TextButton> pullButton;
-    ScopedPointer<TextButton> pushButton;
+    ScopedPointer<TextButton> seqPullButton;
+    ScopedPointer<TextButton> seqPushButton;
     ScopedPointer<Label> presetNameLabel;
     ScopedPointer<ComboBox> midiChannelCombo;
     ScopedPointer<TextButton> deviceButton;

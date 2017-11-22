@@ -51,7 +51,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     // ================== OSC1 ===========================================================================
     //Oscillator 1 shape        0 - 34         0    20
 	nrpmParam = 0;
-	newParam = new MidifiedFloatParameter(String("Osc1 Shape"), nrpmParam, 1, 0, 34, 0);
+	newParam = new MidifiedFloatParameter(String("Osc1 Shape"), nrpmParam, 1, 0, 34, 1);
 	addMidifiedParameter(newParam);
     ccIndex[20] = parameterIndex;
 	nrpmIndex[nrpmParam] = parameterIndex++;
@@ -77,7 +77,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     // ================== OSC2 ===========================================================================      
     //Oscillator 2 shape0 - 34	4	24
     nrpmParam = 4;
-    newParam = new MidifiedFloatParameter(String("Osc2 Shape"), nrpmParam, 1, 0, 34, 0);
+    newParam = new MidifiedFloatParameter(String("Osc2 Shape"), nrpmParam, 1, 0, 34, 2);
     addMidifiedParameter(newParam);
     ccIndex[24] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -283,7 +283,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
         nrpmIndex[nrpmParam] = parameterIndex++;
         //addAndMakeVisible(lfoShape[l] = new ComboBox("Lfo" + String(l + 1) + " Rate"));
         nrpmParam = 25 + l * 4;
-        newParam = new MidifiedFloatParameter("Lfo" + String(l + 1) + " Rate", nrpmParam, 1, 0, 144, 0);
+        newParam = new MidifiedFloatParameter("Lfo" + String(l + 1) + " Rate", nrpmParam, 1, 0, 144, 20);
         addMidifiedParameter(newParam);
         ccIndex[113 + l * 4] = parameterIndex;
         nrpmIndex[nrpmParam] = parameterIndex++;
@@ -305,7 +305,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     //addAndMakeVisible(seqMode = new ComboBox("Seq Mode"));
     //Sequencer mode 0 - 2 100 75
     nrpmParam = 100;
-    newParam = new MidifiedFloatParameter("Seq Mode", nrpmParam, 1, 0, 2, 0);
+    newParam = new MidifiedFloatParameter("Seq Mode", nrpmParam, 1, 0, 2, 2);
     addMidifiedParameter(newParam);
     ccIndex[75] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -313,7 +313,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     //addAndMakeVisible(seqBpm = new ComboAndSlider("Seq Bpm"));
     //Tempo 35 - 248 101
     nrpmParam = 101;
-    newParam = new MidifiedFloatParameter("Seq Bpm", nrpmParam, 1, 38, 240, 0);
+    newParam = new MidifiedFloatParameter("Seq Bpm", nrpmParam, 1, 38, 240, 90);
     addMidifiedParameter(newParam);
     nrpmIndex[nrpmParam] = parameterIndex++;
 
@@ -368,7 +368,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     // "Seq NumberOfSteps"
 
     nrpmParam = 108;
-    newParam = new MidifiedFloatParameter("Seq NumberOfSteps", nrpmParam, 1, 1, 16, 0);
+    newParam = new MidifiedFloatParameter("Seq NumberOfSteps", nrpmParam, 1, 1, 16, 16);
     addMidifiedParameter(newParam);
     nrpmIndex[nrpmParam] = parameterIndex++;
 

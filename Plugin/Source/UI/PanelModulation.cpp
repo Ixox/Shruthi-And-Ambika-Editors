@@ -185,7 +185,7 @@ PanelModulation::PanelModulation ()
 
         addAndMakeVisible(lfoRate[l] = new ComboAndSlider("Lfo" + String(l + 1) + " Rate"));
         lfoRate[l]->setComboParams(lfoRateSyncedText, 0);
-        lfoRate[l]->setSliderParams(0.0f, 127.0f, 16.0f);
+        lfoRate[l]->setSliderParams(0.0f, 127.0f, 16.0);
         lfoRate[l]->addListener(this);
 
         // LFO 1 rise time 0 - 127 26 114
@@ -445,11 +445,7 @@ void PanelModulation::buildParameters() {
         updateComboFromParameter(lfoShape[l]);
         updateSliderFromParameter(lfoAttack[l]);
         updateComboFromParameter(lfoMode[l]);
-
-        DBG("LFO " << (l + 1));
-        checkParamExistence(lfoRate[l]->getName());
-        DBG("LFO " << (l + 1) << "  :  " << lfoRate[l]->getName());
-        componentMap.set(lfoRate[l]->getName(), lfoRate[l]);
+        updateComboAndSliderFromParameter(lfoRate[l]);
     }
 
 
