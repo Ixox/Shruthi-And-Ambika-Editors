@@ -32,7 +32,7 @@ const char* seqModeItems[] = { "Step", "Arpeggiator", "Sequencer", nullptr };
 const char* seqBmpComboItems[] = { "Internal",  "Ext Synced", nullptr };
 
 const char* seqGrooveItems[] = {   "swing",    "shuffle",    "push",    "lag",    "human",    "monkey",    nullptr };
-const char* seqDivisionItems[] = {     "1 / 1","1 / 2","1 / 3","1 / 4","1 / 6","1 / 8","/ 12","/ 16","/ 24","/ 32","/ 48","/ 96", nullptr };
+const char* seqDivisionItems[] = {     "1 / 1","1 / 2","1 / 3","1 / 4","1 / 6","1 / 8","1 / 12","1 / 16","1 / 24","1 / 32","1 / 48","1 / 96", nullptr };
 const char* seqDirectionItems[] = { "Up", "Down", "Up and Down", "Random", "As played", nullptr };
 const char* seqPatternItems[] = {
     "1: o.o.o.o.o.o.o.o","2: ooo.ooo.ooo.ooo","3: o.o.ooooo.o.oooo","4: o.o.oo.oo.o.oo.o","5: oooo.oo.oooo.oo","6: o..o....o..o....","7: o..o..o.o..o..o","8: o..o..o..o..o.o",
@@ -239,6 +239,7 @@ PanelSequencer::PanelSequencer ()
 
     }
     addAndMakeVisible(seqScore = new SequencerScore("seqScore"));
+
     //[/UserPreSize]
 
     setSize (1000, 710);

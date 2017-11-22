@@ -207,7 +207,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
         //Envelope 1 attack 0 - 127 16 104
         //Envelope 2 attack 0 - 127 20 108, 73
         nrpmParam = 16 + e*4;
-        newParam = new MidifiedFloatParameter("Env" + String(e+1) + " Attk", nrpmParam, 1, 0, 127, 30);
+        newParam = new MidifiedFloatParameter("Env" + String(e+1) + " Attk", nrpmParam, 1, 0, 127, 5);
         addMidifiedParameter(newParam);
         ccIndex[104 + e*4] = parameterIndex;
         nrpmIndex[nrpmParam] = parameterIndex++;
@@ -216,7 +216,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
         //Envelope 1 decay 0 - 127 17 105
         //Envelope 2 decay 0 - 127 21 109
         nrpmParam = 17 + e * 4;
-        newParam = new MidifiedFloatParameter("Env" + String(e + 1) + " Deca", nrpmParam, 1, 0, 127, 30);
+        newParam = new MidifiedFloatParameter("Env" + String(e + 1) + " Deca", nrpmParam, 1, 0, 127, 5);
         addMidifiedParameter(newParam);
         ccIndex[105 + e * 4] = parameterIndex;
         nrpmIndex[nrpmParam] = parameterIndex++;
@@ -225,7 +225,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
         //Envelope 1 sustain 0 - 127 18 106
         //Envelope 2 sustain 0 - 127 22 110
         nrpmParam = 18 + e * 4;
-        newParam = new MidifiedFloatParameter("Env" + String(e + 1) + " Sust", nrpmParam, 1, 0, 127, 30);
+        newParam = new MidifiedFloatParameter("Env" + String(e + 1) + " Sust", nrpmParam, 1, 0, 127, 63);
         addMidifiedParameter(newParam);
         ccIndex[106 + e * 4] = parameterIndex;
         nrpmIndex[nrpmParam] = parameterIndex++;
@@ -233,27 +233,49 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
         //Envelope 1 release 0 - 127 19 107
         //Envelope 2 release 0 - 127 23 111
         nrpmParam = 19 + e * 4;
-        newParam = new MidifiedFloatParameter("Env" + String(e + 1) + " Rele", nrpmParam, 1, 0, 127, 30);
+        newParam = new MidifiedFloatParameter("Env" + String(e + 1) + " Rele", nrpmParam, 1, 0, 127, 10);
         addMidifiedParameter(newParam);
         ccIndex[107 + e * 4] = parameterIndex;
         nrpmIndex[nrpmParam] = parameterIndex++;
     }
 
     // MATRIX
+    const char* matrixSourceNames[] = {
+        "Lfo 1","Lfo 2","Sequencer","Seq 1","Seq 2","Arpegiator","M Wheel","Aftertouch","Bender",
+        "Offset","cv1","cv2","cv3","cv4","ccA (16)","ccB (17)","Bre (18)","Ped (19)","Noise",
+        "Envelope 1","Envelope 2","Velocity","Random","Note","Gate","Audio","Operator 1","Operator 2", nullptr
+    };
+
+    // 27
+    const char* matrixDestNames[] = {
+        "Pwm1","Pwm2","Osc 1","Osc 2","Osc 1+2","Osc 1+2 fine","Mix","Noise","Sub Osc","Cutoff","Resonnance",
+        "Vca","Cv1", "Cv2",
+        "Env1 trigger","Env1 Attk","Env1 Dec","Env1 Sust","Env1 Rel","Env2 trigger","Env2 Attk",
+        "Env2 Dec","Env2 Sust", "Env2 Rel","Env1+2 Attk","Lfo1 Rate","Lfo2 Rate",
+        nullptr
+    };
+    
+    const int defaultSources[12] = { 0,0,1,1,1,2,21,21,20,21,8,0 };
+    const int defaultAmount[12] = {0,0,0,0,0,0,0,0,63,16,32,16};
+    // Destination are not in the right order
+    const int matrixDestValue[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 11, 1, 12, 13, 17, 19, 20, 21, 22, 18, 23, 24, 25, 26, 14, 15, 16 };
+    const int defaultTarget[12] = { 2,3,0,1,6,6,0,1,11,11,4,4 };
+    
+
     for (int r = 0; r < 12; r++) {
         //addAndMakeVisible(matrixSource[r] = new ComboBox("Mtx" + String(r + 1) + " Source"));
         nrpmParam = 32 + r * 3;
-        newParam = new MidifiedFloatParameter("Mtx" + String(r + 1) + " Source", nrpmParam, 1, 0, 28, 0);
+        newParam = new MidifiedFloatParameter("Mtx" + String(r + 1) + " Source", nrpmParam, 1, 0, 28, defaultSources[r]);
         addMidifiedParameter(newParam);
         nrpmIndex[nrpmParam] = parameterIndex++;
         //addAndMakeVisible(matrixDestination[r] = new ComboBox("Mtx" + String(r + 1) + " Destination"));
         nrpmParam = 33 + r * 3;
-        newParam = new MidifiedFloatParameter("Mtx" + String(r + 1) + " Destination", nrpmParam, 1, 0, 27, 0);
+        newParam = new MidifiedFloatParameter("Mtx" + String(r + 1) + " Destination", nrpmParam, 1, 0, 27, matrixDestValue[defaultTarget[r]]);
         addMidifiedParameter(newParam);
         nrpmIndex[nrpmParam] = parameterIndex++;
         //addAndMakeVisible(matrixMultipler[r] = new SliderPfm2("Mtx" + String(r + 1) + " Multiplier"));
         nrpmParam = 34 + r * 3;
-        newParam = new MidifiedFloatParameter("Mtx" + String(r + 1) + " Multiplier", nrpmParam, 1, -63, 63, 0);
+        newParam = new MidifiedFloatParameter("Mtx" + String(r + 1) + " Multiplier", nrpmParam, 1, -63, 63, defaultAmount[r]);
         addMidifiedParameter(newParam);
         nrpmIndex[nrpmParam] = parameterIndex++;
     }
@@ -305,7 +327,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     //addAndMakeVisible(seqMode = new ComboBox("Seq Mode"));
     //Sequencer mode 0 - 2 100 75
     nrpmParam = 100;
-    newParam = new MidifiedFloatParameter("Seq Mode", nrpmParam, 1, 0, 2, 2);
+    newParam = new MidifiedFloatParameter("Seq Mode", nrpmParam, 1, 0, 2, 0);
     addMidifiedParameter(newParam);
     ccIndex[75] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -360,7 +382,7 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
     //addAndMakeVisible(seqDivision = new ComboBox("Seq Division"));
     //Sequencer clock division 0 - 11 107 81
     nrpmParam = 107;
-    newParam = new MidifiedFloatParameter("Seq Division", nrpmParam, 1, 0, 11, 0);
+    newParam = new MidifiedFloatParameter("Seq Division", nrpmParam, 1, 0, 11, 9);
     addMidifiedParameter(newParam);
     ccIndex[81] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -418,8 +440,13 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
 	midiMessageCollector.reset(44100);
 
 
+    // Sequencer init
     shruthiSequencer = nullptr;
-
+    srand(time(NULL));
+    for (int s = 0; s< 16; s++) {
+        shruthiSteps[s].data_[0] = 48 + s + (s % 2 == 0 ? 0x80: 0);
+        shruthiSteps[s].data_[1] = ((s % 3) == 2 ? 0x80 : 0) + (((7 + s) % 7) << 4) + (rand() % 15);
+    }
 }
 
 ShruthiAudioProcessor::~ShruthiAudioProcessor()
