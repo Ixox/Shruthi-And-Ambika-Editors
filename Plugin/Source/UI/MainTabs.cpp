@@ -61,15 +61,15 @@ MainTabs::MainTabs ()
     tabbedComponent->addTab (TRANS("Seq/Arp"), Colour (0xff173e5a), new PanelSequencer(), true);
     tabbedComponent->setCurrentTabIndex (0);
 
-    addAndMakeVisible (seqPullButton = new TextButton ("pull button"));
-    seqPullButton->setTooltip (TRANS("Pull all parameters from the preenfm2 to this plugin"));
-    seqPullButton->setButtonText (TRANS("Pull"));
-    seqPullButton->addListener (this);
+    addAndMakeVisible (pullButton = new TextButton ("pull button"));
+    pullButton->setTooltip (TRANS("Pull all parameters from the preenfm2 to this plugin"));
+    pullButton->setButtonText (TRANS("Pull"));
+    pullButton->addListener (this);
 
-    addAndMakeVisible (seqPushButton = new TextButton ("push button"));
-    seqPushButton->setTooltip (TRANS("Push all parameters from plugin to preenfm2"));
-    seqPushButton->setButtonText (TRANS("Push"));
-    seqPushButton->addListener (this);
+    addAndMakeVisible (pushButton = new TextButton ("push button"));
+    pushButton->setTooltip (TRANS("Push all parameters from plugin to preenfm2"));
+    pushButton->setButtonText (TRANS("Push"));
+    pushButton->addListener (this);
 
     addAndMakeVisible (presetNameLabel = new Label ("preset name label",
                                                     TRANS("preset")));
@@ -150,8 +150,8 @@ MainTabs::~MainTabs()
     //[/Destructor_pre]
 
     tabbedComponent = nullptr;
-    seqPullButton = nullptr;
-    seqPushButton = nullptr;
+    pullButton = nullptr;
+    pushButton = nullptr;
     presetNameLabel = nullptr;
     midiChannelCombo = nullptr;
     deviceButton = nullptr;
@@ -180,8 +180,8 @@ void MainTabs::resized()
     //[/UserPreResize]
 
     tabbedComponent->setBounds (0, -1, getWidth() - 0, getHeight() - 0);
-    seqPullButton->setBounds (getWidth() - 184, 8, 55, 24);
-    seqPushButton->setBounds (getWidth() - 116, 8, 55, 24);
+    pullButton->setBounds (getWidth() - 184, 8, 55, 24);
+    pushButton->setBounds (getWidth() - 116, 8, 55, 24);
     presetNameLabel->setBounds (proportionOfWidth (0.4003f), proportionOfHeight (0.0033f), 200, 32);
     midiChannelCombo->setBounds (getWidth() - 268, 8, 55, 24);
     deviceButton->setBounds (getWidth() - 340, 8, 60, 24);
@@ -195,7 +195,7 @@ void MainTabs::buttonClicked (Button* buttonThatWasClicked)
     //[UserbuttonClicked_Pre]
     //[/UserbuttonClicked_Pre]
 
-    if (buttonThatWasClicked == seqPullButton)
+    if (buttonThatWasClicked == pullButton)
     {
         //[UserButtonCode_pullButton] -- add your button handler code here..
 
@@ -205,7 +205,7 @@ void MainTabs::buttonClicked (Button* buttonThatWasClicked)
 
         //[/UserButtonCode_pullButton]
     }
-    else if (buttonThatWasClicked == seqPushButton)
+    else if (buttonThatWasClicked == pushButton)
     {
         //[UserButtonCode_pushButton] -- add your button handler code here..
 
