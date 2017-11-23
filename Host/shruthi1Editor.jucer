@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="I4cnWy" name="shruthi1Editor" projectType="guiapp" version="0.9"
+              bundleIdentifier="com.ixox.shruthi1Editor" includeBinaryInAppConfig="1"
+              jucerVersion="5.1.2" defines="" companyName="Xavier Hosxe" companyWebsite="http://www.preenfm.net"
+              companyEmail="xavier.hosxe@gmail.com" displaySplashScreen="1"
+              reportAppUsage="1" splashScreenColour="Dark" cppLanguageStandard="11">
+  <MAINGROUP id="c6LJM5" name="shruthi1Editor">
+    <FILE id="A4FCP1" name="iconInfo.png" compile="0" resource="1" file="../Images/iconInfo.png"/>
+    <FILE id="DAiA7R" name="Shruthi1Icon.PNG" compile="0" resource="1"
+          file="../Images/Shruthi1Icon.PNG"/>
+    <GROUP id="{4109EA71-F7BE-3C72-D039-241F993FAEB9}" name="Source">
+      <GROUP id="{1D684675-DA20-07E6-EFC5-ECF1687EF7D5}" name="Plugin">
+        <FILE id="eAKmTo" name="ComboAndSlider.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/ComboAndSlider.cpp"/>
+        <FILE id="rXSzxo" name="ComboAndSlider.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/ComboAndSlider.h"/>
+        <FILE id="Z0usGM" name="Enveloppe.cpp" compile="1" resource="0" file="../Plugin/Source/UI/Enveloppe.cpp"/>
+        <FILE id="KAVwrG" name="Enveloppe.h" compile="0" resource="0" file="../Plugin/Source/UI/Enveloppe.h"/>
+        <FILE id="yUykgS" name="EnveloppeAbstract.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/EnveloppeAbstract.cpp"/>
+        <FILE id="qIbx2v" name="EnveloppeAbstract.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/EnveloppeAbstract.h"/>
+        <FILE id="qjErtE" name="EnveloppeListener.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/EnveloppeListener.h"/>
+        <FILE id="We4G3E" name="MainTabs.cpp" compile="1" resource="0" file="../Plugin/Source/UI/MainTabs.cpp"/>
+        <FILE id="ASxXjn" name="MainTabs.h" compile="0" resource="0" file="../Plugin/Source/UI/MainTabs.h"/>
+        <FILE id="VcofEJ" name="MidiDevice.cpp" compile="1" resource="0" file="../Plugin/Source/MidiDevice.cpp"/>
+        <FILE id="e4V6NL" name="MidiDevice.h" compile="0" resource="0" file="../Plugin/Source/MidiDevice.h"/>
+        <FILE id="tGCS8H" name="MidifiedFloatParameter.cpp" compile="1" resource="0"
+              file="../Plugin/Source/MidifiedFloatParameter.cpp"/>
+        <FILE id="oitU81" name="MidifiedFloatParameter.h" compile="0" resource="0"
+              file="../Plugin/Source/MidifiedFloatParameter.h"/>
+        <FILE id="gPpchR" name="MyLookAndFeel.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/MyLookAndFeel.cpp"/>
+        <FILE id="BLH8sw" name="MyLookAndFeel.h" compile="0" resource="0" file="../Plugin/Source/UI/MyLookAndFeel.h"/>
+        <FILE id="OwWnzp" name="PanelEngine.cpp" compile="1" resource="0" file="../Plugin/Source/UI/PanelEngine.cpp"/>
+        <FILE id="Dh9e7C" name="PanelEngine.h" compile="0" resource="0" file="../Plugin/Source/UI/PanelEngine.h"/>
+        <FILE id="gHuUuF" name="PanelModulation.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/PanelModulation.cpp"/>
+        <FILE id="KEWRRt" name="PanelModulation.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/PanelModulation.h"/>
+        <FILE id="pysef4" name="PanelOfComponents.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/PanelOfComponents.h"/>
+        <FILE id="yYhB5o" name="PanelSequencer.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/PanelSequencer.cpp"/>
+        <FILE id="LHNj8l" name="PanelSequencer.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/PanelSequencer.h"/>
+        <FILE id="VIEd6L" name="PluginEditor.cpp" compile="1" resource="0"
+              file="../Plugin/Source/PluginEditor.cpp"/>
+        <FILE id="pe564r" name="PluginEditor.h" compile="0" resource="0" file="../Plugin/Source/PluginEditor.h"/>
+        <FILE id="CR8c4t" name="PluginProcessor.cpp" compile="1" resource="0"
+              file="../Plugin/Source/PluginProcessor.cpp"/>
+        <FILE id="q2N4NE" name="PluginProcessor.h" compile="0" resource="0"
+              file="../Plugin/Source/PluginProcessor.h"/>
+        <FILE id="kkAli1" name="sequencer_settings.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/sequencer_settings.cpp"/>
+        <FILE id="vg3ewJ" name="sequencer_settings.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/sequencer_settings.h"/>
+        <FILE id="dwfXyi" name="SequencerScore.cpp" compile="1" resource="0"
+              file="../Plugin/Source/UI/SequencerScore.cpp"/>
+        <FILE id="bQzXux" name="SequencerScore.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/SequencerScore.h"/>
+        <FILE id="KsZeyR" name="Shruthi1Patch.h" compile="0" resource="0" file="../Plugin/Source/UI/Shruthi1Patch.h"/>
+        <FILE id="M2bREj" name="ShruthiSequencer.h" compile="0" resource="0"
+              file="../Plugin/Source/UI/ShruthiSequencer.h"/>
+        <FILE id="XbD5Gd" name="SliderPfm2.h" compile="0" resource="0" file="../Plugin/Source/UI/SliderPfm2.h"/>
+      </GROUP>
+      <FILE id="jG72uk" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="f6aqq8" name="pfm2Window.h" compile="0" resource="0" file="Source/pfm2Window.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/Linux" extraCompilerFlags="-I ~/SDKs -std=gnu++11&#10;"
+                bigIcon="DAiA7R">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
+                       targetName="shruthi1Editor"/>
+        <CONFIGURATION name="Release" libraryPath="/usr/X11R6/lib/" isDebug="0" optimisation="2"
+                       targetName="shruthi1Editor"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="-std=c++11&#10;-stdlib=libc++"
+               extraCompilerFlags="-std=c++11&#10;-stdlib=libc++" bigIcon="DAiA7R">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="32BitUniversal"
+                       isDebug="1" optimisation="1" targetName="shruthi1Editor"/>
+        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="32BitUniversal"
+                       isDebug="0" optimisation="2" targetName="shruthi1Editor"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2015 targetFolder="Builds/VisualStudio2015" windowsTargetPlatformVersion=""
+            smallIcon="" bigIcon="DAiA7R">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
+                       isDebug="1" optimisation="1" targetName="shruthi1Editor"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
+                       isDebug="0" optimisation="3" targetName="shruthi1Editor"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_cryptography" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\..\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\..\JUCE\modules"/>
+      </MODULEPATHS>
+    </VS2015>
+    <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="landscape" bigIcon="DAiA7R">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="shruthi1Editor"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="shruthi1Editor"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+      </MODULEPATHS>
+    </XCODE_IPHONE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_utils" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_core" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_events" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
+  </MODULES>
+  <JUCEOPTIONS/>
+  <LIVE_SETTINGS>
+    <WINDOWS/>
+  </LIVE_SETTINGS>
+</JUCERPROJECT>
