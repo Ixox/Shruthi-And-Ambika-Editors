@@ -299,16 +299,16 @@ void PanelModulation::paint (Graphics& g)
     //[/UserPrePaint]
 
     {
-        int x = proportionOfWidth (0.0000f), y = proportionOfHeight (0.3500f), width = proportionOfWidth (0.5000f), height = proportionOfHeight (0.6500f);
+        int x = proportionOfWidth (0.0100f), y = proportionOfHeight (0.3400f), width = proportionOfWidth (0.5000f), height = proportionOfHeight (0.6500f);
         Colour fillColour1 = Colour (0xff19547e), fillColour2 = Colour (0xff173e5a);
         //[UserPaintCustomArguments] Customize the painting arguments here..
         //[/UserPaintCustomArguments]
         g.setGradientFill (ColourGradient (fillColour1,
-                                       static_cast<float> (proportionOfWidth (0.2500f)) - static_cast<float> (proportionOfWidth (0.0000f)) + x,
-                                       static_cast<float> (proportionOfHeight (0.6500f)) - static_cast<float> (proportionOfHeight (0.3500f)) + y,
+                                       static_cast<float> (proportionOfWidth (0.2500f)) - static_cast<float> (proportionOfWidth (0.0100f)) + x,
+                                       static_cast<float> (proportionOfHeight (0.6500f)) - static_cast<float> (proportionOfHeight (0.3400f)) + y,
                                        fillColour2,
-                                       static_cast<float> (proportionOfWidth (0.2500f)) - static_cast<float> (proportionOfWidth (0.0000f)) + x,
-                                       static_cast<float> (proportionOfHeight (0.3600f)) - static_cast<float> (proportionOfHeight (0.3500f)) + y,
+                                       static_cast<float> (proportionOfWidth (0.2500f)) - static_cast<float> (proportionOfWidth (0.0100f)) + x,
+                                       static_cast<float> (proportionOfHeight (0.3600f)) - static_cast<float> (proportionOfHeight (0.3400f)) + y,
                                        true));
         g.fillRect (x, y, width, height);
     }
@@ -599,7 +599,7 @@ BEGIN_JUCER_METADATA
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="710">
   <BACKGROUND backgroundColour="173e5a">
-    <RECT pos="0% 35% 50% 65%" fill=" radial: 25% 65%, 25% 36%, 0=ff19547e, 1=ff173e5a"
+    <RECT pos="1% 34% 50% 65%" fill=" radial: 25% 65%, 25% 36%, 0=ff19547e, 1=ff173e5a"
           hasStroke="0"/>
   </BACKGROUND>
   <GROUPCOMPONENT name="lfo1Group" id="178ff1e4b1af9a2f" memberName="lfo1Group"
