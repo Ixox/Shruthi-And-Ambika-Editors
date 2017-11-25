@@ -129,6 +129,7 @@ public:
     void sendSequencer(shruthi::SequenceStep newSteps[16]);
 
 private:
+    int editorWidth, editorHeight;
 	int nrpmIndex[NRPN_VIRTUAL_MAX];
     int ccIndex[NRPN_VIRTUAL_MAX];
     int parameterIndex;

@@ -39,6 +39,8 @@ ShruthiAudioProcessor::ShruthiAudioProcessor()
 	shruthiEditor = nullptr;
 	MidifiedFloatParameter* newParam;
 	parameterIndex = 0;
+    editorWidth = 0;
+    editorHeight = 0;
 
 	for (int k = 0; k < NRPN_VIRTUAL_MAX; k++) {
 		nrpmIndex[k] = -1;
@@ -565,6 +567,8 @@ bool ShruthiAudioProcessor::hasEditor() const
 }
 
 void ShruthiAudioProcessor::editorClosed() {
+    editorWidth = shruthiEditor->getWidth();
+    editorHeight = shruthiEditor->getHeight();
     shruthiEditor = nullptr;
     shruthiSequencer = nullptr;    
 }
@@ -577,6 +581,9 @@ AudioProcessorEditor* ShruthiAudioProcessor::createEditor()
 	shruthiEditor->setMidiChannel(currentMidiChannel);
 	shruthiEditor->setMidiOutBuffer(&midiOutBuffer);
 	shruthiEditor->setPresetName(presetName);
+    if (editorWidth > 0 && editorHeight > 0) {
+        shruthiEditor->setSize(editorWidth, editorHeight);
+    }
 
     shruthiSequencer->setSequencerSteps(shruthiSteps);
 	return shruthiEditor;
@@ -611,6 +618,16 @@ void ShruthiAudioProcessor::getStateInformation(MemoryBlock& destData)
     for (int s = 0; s < 16; s++) {
         xml.setAttribute("SequencerStep" + String(s), (shruthiSteps[s].data_[0] << 8) + shruthiSteps[s].data_[1]);
     }
+
+    // Update editorWidth and editorHeight
+    if (shruthiEditor != nullptr) {
+        editorWidth = shruthiEditor->getWidth();
+        editorHeight = shruthiEditor->getHeight();
+    }
+
+    xml.setAttribute("EditorWidth", editorWidth);
+    xml.setAttribute("EditorHeight", editorHeight);
+
 
 	// then use this helper function to stuff it into the binary blob and return it..
 	copyXmlToBinary(xml, destData);
@@ -654,6 +671,16 @@ void ShruthiAudioProcessor::setStateInformation(const void* data, int sizeInByte
                     shruthiSteps[s].data_[0] = stepValue >> 8;
                     shruthiSteps[s].data_[1] = stepValue & 0xff;
                 }
+            }
+
+            if (xmlState->hasAttribute("EditorWidth")) {
+                editorWidth = xmlState->getIntAttribute("EditorWidth");
+            }
+            if (xmlState->hasAttribute("EditorHeight")) {
+                editorHeight = xmlState->getIntAttribute("EditorHeight");
+            }
+            if (shruthiEditor != nullptr && editorWidth > 0 && editorHeight > 0) {
+                shruthiEditor->setSize(editorWidth, editorHeight);
             }
 
 
