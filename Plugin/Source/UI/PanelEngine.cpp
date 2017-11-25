@@ -441,6 +441,36 @@ void PanelEngine::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
+    {
+        int x = 0, y = proportionOfHeight (0.5000f), width = getWidth() - 0, height = proportionOfHeight (0.2000f);
+        Colour fillColour1 = Colour (0xff173e5a), fillColour2 = Colour (0xff1f5073);
+        //[UserPaintCustomArguments] Customize the painting arguments here..
+        //[/UserPaintCustomArguments]
+        g.setGradientFill (ColourGradient (fillColour1,
+                                       static_cast<float> (proportionOfWidth (0.5000f)) - 0.0f + x,
+                                       static_cast<float> (proportionOfHeight (0.5000f)) - static_cast<float> (proportionOfHeight (0.5000f)) + y,
+                                       fillColour2,
+                                       static_cast<float> (proportionOfWidth (0.5000f)) - 0.0f + x,
+                                       static_cast<float> (proportionOfHeight (0.7000f)) - static_cast<float> (proportionOfHeight (0.5000f)) + y,
+                                       false));
+        g.fillRect (x, y, width, height);
+    }
+
+    {
+        int x = 0, y = proportionOfHeight (0.6900f), width = getWidth() - 0, height = proportionOfHeight (0.2100f);
+        Colour fillColour1 = Colour (0xff1f5073), fillColour2 = Colour (0xff173e5a);
+        //[UserPaintCustomArguments] Customize the painting arguments here..
+        //[/UserPaintCustomArguments]
+        g.setGradientFill (ColourGradient (fillColour1,
+                                       static_cast<float> (proportionOfWidth (0.5000f)) - 0.0f + x,
+                                       static_cast<float> (proportionOfHeight (0.7000f)) - static_cast<float> (proportionOfHeight (0.6900f)) + y,
+                                       fillColour2,
+                                       static_cast<float> (proportionOfWidth (0.5000f)) - 0.0f + x,
+                                       static_cast<float> (proportionOfHeight (0.9000f)) - static_cast<float> (proportionOfHeight (0.6900f)) + y,
+                                       false));
+        g.fillRect (x, y, width, height);
+    }
+
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
 }
@@ -813,7 +843,12 @@ BEGIN_JUCER_METADATA
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="710">
-  <BACKGROUND backgroundColour="173e5a"/>
+  <BACKGROUND backgroundColour="173e5a">
+    <RECT pos="0 50% 0M 20%" fill="linear: 50% 50%, 50% 70%, 0=ff173e5a, 1=ff1f5073"
+          hasStroke="0"/>
+    <RECT pos="0 69% 0M 21%" fill="linear: 50% 70%, 50% 90%, 0=ff1f5073, 1=ff173e5a"
+          hasStroke="0"/>
+  </BACKGROUND>
   <GROUPCOMPONENT name="Osc1 Group" id="f2a0395148710745" memberName="osc1Group"
                   virtualName="" explicitFocusOrder="0" pos="3.358% 9.477% 45.031% 25.054%"
                   title="Oscillator 1"/>

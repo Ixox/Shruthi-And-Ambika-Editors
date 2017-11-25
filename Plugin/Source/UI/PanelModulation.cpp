@@ -68,8 +68,8 @@ const char* lfoShapes[] = { "Triangle", "Square", "S&hold", "Ramp", "Step", "~1"
 const char* lfoModes[] = { "Free" , "Slave", "Master", "First Shot", nullptr };
 
 const char* operatorSourceNames[] = {
- "Lfo 1", "Lfo 2", "Sequencer", "Seq 1", "Seq 2", "Arpegiator", "M Wheel", "Aftertouch", "Bender", 
- "Offset", 
+ "Lfo 1", "Lfo 2", "Sequencer", "Seq 1", "Seq 2", "Arpegiator", "M Wheel", "Aftertouch", "Bender",
+ "Offset",
  "cv1","cv2","cv3","cv4","ccA (16)","ccB (17)","Bre (18)","Ped (19)","Noise",
  "Envelope 1","Envelope 2","Velocity","Random","Note","Gate","Audio","Operator 1","Operator 2",
  "= 4", "= 8", "= 16", "= 32", nullptr
@@ -298,6 +298,21 @@ void PanelModulation::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
+    {
+        int x = proportionOfWidth (0.0000f), y = proportionOfHeight (0.3500f), width = proportionOfWidth (0.5000f), height = proportionOfHeight (0.6500f);
+        Colour fillColour1 = Colour (0xff19547e), fillColour2 = Colour (0xff173e5a);
+        //[UserPaintCustomArguments] Customize the painting arguments here..
+        //[/UserPaintCustomArguments]
+        g.setGradientFill (ColourGradient (fillColour1,
+                                       static_cast<float> (proportionOfWidth (0.2500f)) - static_cast<float> (proportionOfWidth (0.0000f)) + x,
+                                       static_cast<float> (proportionOfHeight (0.6500f)) - static_cast<float> (proportionOfHeight (0.3500f)) + y,
+                                       fillColour2,
+                                       static_cast<float> (proportionOfWidth (0.2500f)) - static_cast<float> (proportionOfWidth (0.0000f)) + x,
+                                       static_cast<float> (proportionOfHeight (0.3600f)) - static_cast<float> (proportionOfHeight (0.3500f)) + y,
+                                       true));
+        g.fillRect (x, y, width, height);
+    }
+
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
 }
@@ -310,12 +325,12 @@ void PanelModulation::resized()
 
     //[/UserPreResize]
 
-    lfo1Group->setBounds (proportionOfWidth (0.0055f), proportionOfHeight (0.0087f), proportionOfWidth (0.2598f), proportionOfHeight (0.2353f));
-    env1Group->setBounds (proportionOfWidth (0.0055f), proportionOfHeight (0.2440f), proportionOfWidth (0.5428f), proportionOfHeight (0.2527f));
+    lfo1Group->setBounds (proportionOfWidth (0.0048f), proportionOfHeight (0.0087f), proportionOfWidth (0.2577f), proportionOfHeight (0.2353f));
+    env1Group->setBounds (proportionOfWidth (0.0048f), proportionOfHeight (0.2440f), proportionOfWidth (0.5422f), proportionOfHeight (0.2527f));
     matrixGroup->setBounds (proportionOfWidth (0.5593f), 0, proportionOfWidth (0.4277f), getHeight() - 0);
-    env2Group->setBounds (proportionOfWidth (0.0055f), proportionOfHeight (0.4967f), proportionOfWidth (0.5428f), proportionOfHeight (0.2527f));
-    operatorsGroup->setBounds (proportionOfWidth (0.0055f), proportionOfHeight (0.7495f), proportionOfWidth (0.5428f), proportionOfHeight (0.2353f));
-    lfo2Group->setBounds (proportionOfWidth (0.2851f), proportionOfHeight (0.0087f), proportionOfWidth (0.2598f), proportionOfHeight (0.2353f));
+    env2Group->setBounds (proportionOfWidth (0.0048f), proportionOfHeight (0.4967f), proportionOfWidth (0.5422f), proportionOfHeight (0.2527f));
+    operatorsGroup->setBounds (proportionOfWidth (0.0048f), proportionOfHeight (0.7495f), proportionOfWidth (0.5422f), proportionOfHeight (0.2353f));
+    lfo2Group->setBounds (proportionOfWidth (0.2844f), proportionOfHeight (0.0087f), proportionOfWidth (0.2577f), proportionOfHeight (0.2353f));
     //[UserResized] Add your own custom resize handling here..
 
     }
@@ -583,24 +598,27 @@ BEGIN_JUCER_METADATA
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="710">
-  <BACKGROUND backgroundColour="173e5a"/>
+  <BACKGROUND backgroundColour="173e5a">
+    <RECT pos="0% 35% 50% 65%" fill=" radial: 25% 65%, 25% 36%, 0=ff19547e, 1=ff173e5a"
+          hasStroke="0"/>
+  </BACKGROUND>
   <GROUPCOMPONENT name="lfo1Group" id="178ff1e4b1af9a2f" memberName="lfo1Group"
-                  virtualName="" explicitFocusOrder="0" pos="0.548% 0.871% 25.977% 23.529%"
+                  virtualName="" explicitFocusOrder="0" pos="0.48% 0.871% 25.771% 23.529%"
                   title="Lfo 1"/>
   <GROUPCOMPONENT name="env1Group" id="3420ca195fbbe4e6" memberName="env1Group"
-                  virtualName="" explicitFocusOrder="0" pos="0.548% 24.401% 54.284% 25.272%"
+                  virtualName="" explicitFocusOrder="0" pos="0.48% 24.401% 54.215% 25.272%"
                   title="Env 1"/>
   <GROUPCOMPONENT name="matrixGroup" id="e0162bb0e79330d7" memberName="matrixGroup"
                   virtualName="" explicitFocusOrder="0" pos="55.929% 0 42.769% 0M"
                   title="Modulation"/>
   <GROUPCOMPONENT name="env2Group" id="cf2ae727450c0ea4" memberName="env2Group"
-                  virtualName="" explicitFocusOrder="0" pos="0.548% 49.673% 54.284% 25.272%"
+                  virtualName="" explicitFocusOrder="0" pos="0.48% 49.673% 54.215% 25.272%"
                   title="Env 2"/>
   <GROUPCOMPONENT name="operatorsGroup" id="47b2f0c9ab2af6e8" memberName="operatorsGroup"
-                  virtualName="" explicitFocusOrder="0" pos="0.548% 74.946% 54.284% 23.529%"
+                  virtualName="" explicitFocusOrder="0" pos="0.48% 74.946% 54.215% 23.529%"
                   title="Operators"/>
   <GROUPCOMPONENT name="lfo2Group" id="e478119d0c82c79f" memberName="lfo2Group"
-                  virtualName="" explicitFocusOrder="0" pos="28.513% 0.871% 25.977% 23.529%"
+                  virtualName="" explicitFocusOrder="0" pos="28.444% 0.871% 25.771% 23.529%"
                   title="Lfo 2"/>
 </JUCER_COMPONENT>
 
