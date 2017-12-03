@@ -154,7 +154,7 @@ void AudioProcessorShruthi::initAllParameters() {
     //SVF Filter cutoff 2 12
     nrpmParam = NRPN_VIRTUAL_FILTER2_CUTOFF;
     newParam = new MidifiedFloatParameter(String("FilterSVF Cutoff"), nrpmParam, 1, 0, 127, 63);
-    newParam->setUseThisCC(86);
+    newParam->setUseThisCC(12);
     addMidifiedParameter(newParam);
     ccIndex[12] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -162,7 +162,7 @@ void AudioProcessorShruthi::initAllParameters() {
     //SVF Filter resonance 2 13
     nrpmParam = NRPN_VIRTUAL_FILTER2_RESONNANCE;
     newParam = new MidifiedFloatParameter(String("FilterSVF Resonnance"), nrpmParam, 1, 0, 63, 0);
-    newParam->setUseThisCC(86);
+    newParam->setUseThisCC(13);
     addMidifiedParameter(newParam);
     ccIndex[13] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -170,8 +170,8 @@ void AudioProcessorShruthi::initAllParameters() {
     //SVF Filter mode 1 85
     nrpmParam = NRPN_VIRTUAL_FILTER1_MODE;
     // Force CC for this param
-    newParam->setUseThisCC(85);
     newParam = new MidifiedFloatParameter(String("FilterSVF Mode1"), nrpmParam, 1, 0, 5, 0);
+    newParam->setUseThisCC(85);
     addMidifiedParameter(newParam);
     ccIndex[85] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -179,8 +179,8 @@ void AudioProcessorShruthi::initAllParameters() {
     //SVF Filter mode 2 86
     nrpmParam = NRPN_VIRTUAL_FILTER2_MODE;
     // Force CC for this param
-    newParam->setUseThisCC(86);
     newParam = new MidifiedFloatParameter(String("FilterSVF Mode2"), nrpmParam, 1, 0, 5, 0);
+    newParam->setUseThisCC(86);
     addMidifiedParameter(newParam);
     ccIndex[86] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
@@ -680,6 +680,12 @@ void AudioProcessorShruthi::setStateParamSpecific(XmlElement* xmlState) {
 void AudioProcessorShruthi::getStateParamSpecific(XmlElement* xml) {
     xml->setAttribute("CurrentMidiChannel", currentMidiChannel);
 }
+
+
+void AudioProcessorShruthi::choseNewMidiDevice() {
+    midiDevice->forceChoseNewDevices(getSynthName());
+}
+
 
 #ifdef SHRUTHI
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()

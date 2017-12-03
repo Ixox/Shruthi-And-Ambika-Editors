@@ -33,5 +33,6 @@ public:
     void sendSequencerToSynth();
     void setStateParamSpecific(XmlElement* xmlState) override;
     void getStateParamSpecific(XmlElement* xmlState) override;
+    void choseNewMidiDevice() override;
 
 };
