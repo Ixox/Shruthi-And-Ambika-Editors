@@ -16,6 +16,9 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+#ifdef AMBIKA
+
 #include "AudioProcessorAmbika.h"
 
 AudioProcessorAmbika::AudioProcessorAmbika()
@@ -371,19 +374,44 @@ void AudioProcessorAmbika::encodeSysexPatch(uint8* message) {
 
 
 
+
 void AudioProcessorAmbika::decodeSysexPatch(const uint8* patch) {
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
 
-    for (int b = 0; b < 103; b++) {
+    for (int b = 0; b < 112; b++) {
         int index = nrpmIndex[b];
+        if (index == -1) {
+             DBG("nrpmIndex[" << b << "] IS MISSING !!!!!!!");
+            continue;
+        }
+        uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
+        MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
+        midifiedFP->setValueFromNrpn((int)byte);
+        if (b >= 112 && b <= 124) {
+            DBG("SYSEX DECODE Name '" << midifiedFP->getName() << "' nrpn "<< b << "  (index : " << index << ") byte : " << byte);
+        }
+    }
+
+    // REDRAW UI   
+    redrawUI();
+}
+
+
+void AudioProcessorAmbika::decodeSysexPartData(const uint8* pdata) {
+    const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
+
+    for (int b = 0; b < 84; b++) {
+        int index = nrpmIndex[b + 112];
         if (index == -1) {
             DBG("nrpmIndex[" << b << "] IS MISSING !!!!!!!");
             continue;
         }
-        // DBG("SYSEX DECODE : b " << b << " / index : " << index);
-        uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
+        uint8 byte = pdata[b * 2] * 0x10 + pdata[b * 2 + 1];
         MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
         midifiedFP->setValueFromNrpn((int)byte);
+        if (b <= 8) {
+            DBG("SYSEX DECODE Name '" << midifiedFP->getName() << "' nrpn " << b << "  (index : " << index << ") byte : " << byte);
+        }
     }
 
     // REDRAW UI   
@@ -408,7 +436,19 @@ void AudioProcessorAmbika::requestPatchTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x11, 0x00, 0x00, 0x00 };
     command[6] = currentPart;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
+    requestPartDataTransfer();
+    canReceiveSysexSequencer = true;
+    requestSequencerTransfer();
 }
+
+
+void AudioProcessorAmbika::requestPartDataTransfer() {
+    char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x15, 0x00, 0x00, 0x00 };
+    command[6] = currentPart;
+    sendSysex(MidiMessage::createSysExMessage(command, 9));
+    canReceiveSysexPartData = true;
+}
+
 
 void AudioProcessorAmbika::requestSequencerTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x12, 0x00, 0x00, 0x00 };
@@ -417,17 +457,20 @@ void AudioProcessorAmbika::requestSequencerTransfer() {
 }
 
 void AudioProcessorAmbika::decodeMultiData(const uint8* message) {
-    struct MultiData multiData;
+    if (canReceiveSysexPartData) {
+        struct MultiData multiData;
 
-    uint8* buffer = (uint8*) &multiData;
-    for (int b = 0; b < 52; b++) {
-        buffer[b] = message[b * 2] * 0x10 + message[b * 2 + 1];
+        uint8* buffer = (uint8*)&multiData;
+        for (int b = 0; b < 52; b++) {
+            buffer[b] = message[b * 2] * 0x10 + message[b * 2 + 1];
+        }
+
+        updateMidiChannelFromPart(&multiData);
+
+        const MessageManagerLock mmLock;
+        ambikaMultiData->setMultiData(&multiData);
+        canReceiveSysexPartData = false;
     }
-
-    updateMidiChannelFromPart(&multiData);
-
-    const MessageManagerLock mmLock;
-    ambikaMultiData->setMultiData(&multiData);
 }
 
 
@@ -592,8 +635,15 @@ void AudioProcessorAmbika::getStateParamSpecific(XmlElement* xml) {
 }
 
 
+void AudioProcessorAmbika::choseNewMidiDevice() {
+    if (midiDevice->forceChoseNewDevices(getSynthName())) {
+        if (needsPart()) {
+            requestMultiDataTransfer();
+        }
+    }
+}
 
-#ifdef AMBIKA
+
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     AudioProcessorAmbika* audioProcessor = new AudioProcessorAmbika();

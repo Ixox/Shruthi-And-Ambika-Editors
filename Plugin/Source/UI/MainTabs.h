@@ -95,7 +95,9 @@ private:
 	PanelEngine* panelEngine;
 	PanelModulation* panelModulation;
     PanelSequencer* panelSequencer;
+#ifdef AMBIKA
     PanelMulti* panelMulti;
+#endif
     MidiBuffer *midiOutBuffer;
 	char *presetNamePtr;
     MISettingsListener* settingsListener;

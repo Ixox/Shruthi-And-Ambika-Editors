@@ -18,6 +18,7 @@
 */
 
 //[Headers] You can add your own extra header files here...
+#ifdef AMBIKA
 #include "../SliderPfm2.h"
 //[/Headers]
 
@@ -605,7 +606,7 @@ void PanelMulti::setMultiDataUsed(bool mdu) {
 }
 
 
-
+#endif
 //[/MiscUserCode]
 
 

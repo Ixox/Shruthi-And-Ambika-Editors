@@ -137,7 +137,9 @@ MainTabs::MainTabs ()
     tabbedComponent->setTabBackgroundColour(3, tabBackground);
 
 #endif
-
+#ifdef SHRUTHI
+    deviceButton->setButtonText("Midi");
+#endif
 
     presetNameLabel->setColour(Label::textColourId, findColour(ComboBox::textColourId));
     midiChannelCombo->setColour(ComboBox::textColourId, Colours::whitesmoke);

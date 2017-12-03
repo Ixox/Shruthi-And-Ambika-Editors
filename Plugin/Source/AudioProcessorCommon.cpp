@@ -606,6 +606,7 @@ void AudioProcessorCommon::handleIncomingMidiMessage(MidiInput *source, const Mi
         if (receivingMultiPart) {
             command = 4;
         }
+
         switch (command) {
         case 1:
             DBG("YEAH NEW PATCH !!!");
@@ -640,6 +641,9 @@ void AudioProcessorCommon::handleIncomingMidiMessage(MidiInput *source, const Mi
             }
             break;
         }
+        case 5: {
+            decodeSysexPartData(message + 7);
+        }
         default:
             DBG("sysex command " << command << ": I do nothing...");
             break;
@@ -652,13 +656,6 @@ void AudioProcessorCommon::handlePartialSysexMessage(MidiInput *source, const ui
     DBG("handlePartialSysexMessage " << numBytesSoFar);
 }
 
-void AudioProcessorCommon::choseNewMidiDevice() {
-    if (midiDevice->forceChoseNewDevices(getSynthName())) {
-        if (needsPart()) {
-            requestMultiDataTransfer();
-        }
-    }
-}
 
 
 void AudioProcessorCommon::setMISequencer(MISequencer* shruthiSeq) {

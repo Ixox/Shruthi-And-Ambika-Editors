@@ -23,12 +23,18 @@
 #define MIDI_FOR_PART "midiForPart"
 
 MidiDevice::MidiDevice() {
-	String pfm2InputDevice = "PreenFM mk2";
-	String pfm2OutputDevice = "PreenFM mk2";
+    String pfm2InputDevice = "##NONE";
+    String pfm2OutputDevice = "##NONE";
 
 	PropertiesFile::Options options;
-	options.applicationName = ProjectInfo::projectName;
-	options.osxLibrarySubFolder = "Application Support";
+#ifdef AMBIKA
+	options.applicationName = "ambikaEditor";
+#endif
+#ifdef SHRUTHI
+    options.applicationName = "shruthiEditor";
+#endif
+
+options.osxLibrarySubFolder = "Application Support/Ixox";
 	options.filenameSuffix = ".settings";
 	options.storageFormat = PropertiesFile::StorageFormat::storeAsXML;
 	pfm2AppProps.setStorageParameters(options);

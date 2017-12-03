@@ -46,7 +46,8 @@
 const char* seqAllLabeItems[] = { "Mode" , "Bpm", "Groove", "Amount", "Direction", "Range", "Pattern", "Division", "Length 1/2/3"};
 
 const char* seqModeItems[] = { "Step", "Arpeggiator", "Sequencer", nullptr };
-const char* seqDivisionItems[] = {     "1 / 1","1 / 2","1 / 3","1 / 4","1 / 6","1 / 8","1 / 12","1 / 16","1 / 24","1 / 32","1 / 48","1 / 96", nullptr };
+const char* seqDivisionItems[] = {
+    "1 / 1", "3 / 4","2 / 3","1 / 2","3 / 8","1 / 3","1 / 4","1 / 6","1 / 8","1 / 12","1 / 16","1 / 24","1 / 32","1 / 48","1 / 96", nullptr };
 const char* seqDirectionItems[] = { "Up", "Down", "Up and Down", "Random", "As played", nullptr };
 const char* seqPatternItems[] = {
  "o-o- o-o- o-o- o-o-",

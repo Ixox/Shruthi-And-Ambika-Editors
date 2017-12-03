@@ -121,7 +121,7 @@ public:
 
 	void handleIncomingMidiMessage(MidiInput *source, const MidiMessage &message);
 	void handlePartialSysexMessage(MidiInput *source, const uint8 *messageData, int numBytesSoFar, double timestamp);
-	void choseNewMidiDevice();
+	virtual void choseNewMidiDevice() = 0;
 
     // Sysex
     void sendSysexPatch();
@@ -155,6 +155,8 @@ public:
     virtual bool needsPresetName() { return true; }
     int getMidiChannel() { return currentMidiChannel; }
     int getPart() { return currentPart; }
+    virtual void decodeSysexPartData(const uint8* pdata) {};
+
 #ifdef AMBIKA
     virtual void setAmbikaMultiData(AmbikaMultiData* amd) = 0;
 #endif

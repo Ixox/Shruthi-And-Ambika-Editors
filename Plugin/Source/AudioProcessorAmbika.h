@@ -32,6 +32,7 @@ public:
     void encodeSysexPatch(uint8* message) override;
     void requestPatchTransfer() override;
     void requestSequencerTransfer() override;
+    void requestPartDataTransfer();
     void decodeMultiData(const uint8* message) override;
     String getSynthName() override;
     void sendSequencerToSynth();
@@ -40,18 +41,22 @@ public:
     bool needsPresetName() override;
     bool needsRealTimeUpdate() override;
     void setRealTimeUpdate(int param, int value) override;
-    void setAmbikaMultiData(AmbikaMultiData* amd) override { ambikaMultiData = amd;  }
 
+    void setAmbikaMultiData(AmbikaMultiData* amd) override { ambikaMultiData = amd;  }
     void sendMultiData(MultiData* md) override;
     void requestMultiDataTransfer() override;
+
     void setStateParamSpecific(XmlElement* xmlState) override;
     void getStateParamSpecific(XmlElement* xmlState) override;
 
     void updateMidiChannelFromPart(MultiData* md);
+    void decodeSysexPartData(const uint8* pdata) override;
+    void choseNewMidiDevice() override;
 
 private:
     AmbikaMultiData* ambikaMultiData;
     ScopedPointer<XmlElement> xmlMultiDataElement;
+    bool canReceiveSysexPartData;
 
 
 };
