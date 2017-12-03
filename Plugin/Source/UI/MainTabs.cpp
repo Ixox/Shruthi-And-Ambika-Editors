@@ -36,10 +36,14 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "JuceHeader.h"
-#include "../PluginProcessor.h"
+#include "../AudioProcessorCommon.h"
 #include "PanelEngine.h"
 #include "PanelModulation.h"
 #include "PanelSequencer.h"
+#ifdef AMBIKA
+#include "Ambika/PanelMulti.h"
+#include "../AudioProcessorAmbika.h"
+#endif
 //[/Headers]
 
 #include "MainTabs.h"
@@ -52,6 +56,7 @@
 MainTabs::MainTabs ()
 {
     //[Constructor_pre] You can add your own custom stuff here..
+    settingsListener = nullptr;
     //[/Constructor_pre]
 
     addAndMakeVisible (tabbedComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));
@@ -109,7 +114,7 @@ MainTabs::MainTabs ()
     midiChannelCombo->addListener (this);
 
     addAndMakeVisible (deviceButton = new TextButton ("Device Button"));
-    deviceButton->setButtonText (TRANS("Midi"));
+    deviceButton->setButtonText (TRANS("Device"));
     deviceButton->addListener (this);
     deviceButton->setColour (TextButton::buttonColourId, Colour (0x005c5da4));
     deviceButton->setColour (TextButton::buttonOnColourId, Colours::aliceblue);
@@ -122,8 +127,19 @@ MainTabs::MainTabs ()
 
 
     //[UserPreSize]
-    presetNameLabel->setColour(Label::textColourId, findColour(ComboBox::textColourId));
+#ifdef AMBIKA
+    tabbedComponent->addTab("Multi", Colour(0xff173e5a), new PanelMulti(), true);
 
+    Colour tabBackground = findColour(PopupMenu::backgroundColourId); //::fromString("0xFFF5DEB3");
+    tabbedComponent->setTabBackgroundColour(0, tabBackground);
+    tabbedComponent->setTabBackgroundColour(1, tabBackground);
+    tabbedComponent->setTabBackgroundColour(2, tabBackground);
+    tabbedComponent->setTabBackgroundColour(3, tabBackground);
+
+#endif
+
+
+    presetNameLabel->setColour(Label::textColourId, findColour(ComboBox::textColourId));
     midiChannelCombo->setColour(ComboBox::textColourId, Colours::whitesmoke);
 	midiChannelCombo->setSelectedId(1);
 	versionButton->setButtonText(String("v") + ProjectInfo::versionString);
@@ -136,11 +152,14 @@ MainTabs::MainTabs ()
 	panelEngine = ((PanelEngine*)tabbedComponent->getTabContentComponent(0));
 	panelModulation = ((PanelModulation*)tabbedComponent->getTabContentComponent(1));
     panelSequencer = ((PanelSequencer*)tabbedComponent->getTabContentComponent(2));
-	pullButtonValue = 0;
-	currentMidiChannel = 1;
-	pullButtonValue = 0;
-	pushButtonValue = 0;
-	// SET null !
+#ifdef AMBIKA
+    panelMulti = ((PanelMulti*)tabbedComponent->getTabContentComponent(3));
+    // Disable all button
+    panelMulti->setMultiDataUsed(true);
+    panelMulti->setMultiDataUsed(false);
+#endif
+
+    // SET null !
     //[/Constructor]
 }
 
@@ -184,9 +203,18 @@ void MainTabs::resized()
     pushButton->setBounds (getWidth() - 116, 8, 55, 24);
     presetNameLabel->setBounds (proportionOfWidth (0.4003f), proportionOfHeight (0.0033f), 200, 32);
     midiChannelCombo->setBounds (getWidth() - 268, 8, 55, 24);
-    deviceButton->setBounds (getWidth() - 340, 8, 60, 24);
+    deviceButton->setBounds (getWidth() - 340, 8, 70, 24);
     versionButton->setBounds (getWidth() - 58, 8, 54, 20);
     //[UserResized] Add your own custom resize handling here..
+
+    if (settingsListener != nullptr && settingsListener->needsPart()) {
+        deviceButton->setBounds(getWidth()     - 460, 8, 60, 24);
+        partComboLabel->setBounds(getWidth()   - 460 + 60, 8, 40, 24);
+        partCombo->setBounds(getWidth()        - 460 + 105, 8, 40, 24);
+        midiChannelLabel->setBounds(getWidth() - 460 + 150 , 8, 40, 24);
+        midiChannelCombo->setBounds(getWidth() - 460 + 195, 8, 45, 24);
+    }
+
     //[/UserResized]
 }
 
@@ -198,29 +226,25 @@ void MainTabs::buttonClicked (Button* buttonThatWasClicked)
     if (buttonThatWasClicked == pullButton)
     {
         //[UserButtonCode_pullButton] -- add your button handler code here..
-
-		MidifiedFloatParameter* param = getParameterFromName("pull button");
-		pullButtonValue = (pullButtonValue == 1.0f ? 0.0f : 1.0f);
-		param->setRealValue(pullButtonValue);
-
+        if (settingsListener != nullptr) {
+            settingsListener->pullButtonPressed();
+        }
         //[/UserButtonCode_pullButton]
     }
     else if (buttonThatWasClicked == pushButton)
     {
         //[UserButtonCode_pushButton] -- add your button handler code here..
-
-		MidifiedFloatParameter* param = getParameterFromName("push button");
-		pushButtonValue = (pushButtonValue == 1.0f ? 0.0f : 1.0f);
-		param->setRealValue(pushButtonValue);
-
+        if (settingsListener != nullptr) {
+            settingsListener->pushButtonPressed();
+        }
         //[/UserButtonCode_pushButton]
     }
     else if (buttonThatWasClicked == deviceButton)
     {
         //[UserButtonCode_deviceButton] -- add your button handler code here..
-		ShruthiAudioProcessor* pfm2Processor = dynamic_cast<ShruthiAudioProcessor*>(audioProcessor);
-		if (pfm2Processor) {
-			pfm2Processor->choseNewMidiDevice();
+        AudioProcessorCommon* audioProcessorCommon = dynamic_cast<AudioProcessorCommon*>(audioProcessor);
+		if (audioProcessorCommon) {
+            audioProcessorCommon->choseNewMidiDevice();
 		}
         //[/UserButtonCode_deviceButton]
     }
@@ -237,9 +261,9 @@ void MainTabs::labelTextChanged (Label* labelThatHasChanged)
     if (labelThatHasChanged == presetNameLabel)
     {
         //[UserLabelCode_presetNameLabel] -- add your label text handling code here..
-		ShruthiAudioProcessor* pfm2Processor = dynamic_cast<ShruthiAudioProcessor*>(audioProcessor);
-		if (pfm2Processor) {
-			pfm2Processor->setPresetName(presetNameLabel->getText());
+        AudioProcessorCommon* audioProcessorCommon = dynamic_cast<AudioProcessorCommon*>(audioProcessor);
+		if (audioProcessorCommon) {
+            audioProcessorCommon->setPresetName(presetNameLabel->getText());
 		}
 
         //[/UserLabelCode_presetNameLabel]
@@ -257,18 +281,19 @@ void MainTabs::comboBoxChanged (ComboBox* comboBoxThatHasChanged)
     if (comboBoxThatHasChanged == midiChannelCombo)
     {
         //[UserComboBoxCode_midiChannelCombo] -- add your combo box handling code here..
-
-		MidifiedFloatParameter* param = getParameterFromName("Midi Channel");
-
-		if (currentMidiChannel != midiChannelCombo->getSelectedId()) {
-			currentMidiChannel = midiChannelCombo->getSelectedId();
-			param->setRealValue((float)currentMidiChannel);
-		}
-
+        if (settingsListener) {
+            settingsListener->midiChannelChanged(midiChannelCombo->getSelectedId());
+        }
         //[/UserComboBoxCode_midiChannelCombo]
     }
 
     //[UsercomboBoxChanged_Post]
+    if (comboBoxThatHasChanged == partCombo)
+    {
+        if (settingsListener) {
+            settingsListener->partChanged(partCombo->getSelectedId());
+        }
+    }
     //[/UsercomboBoxChanged_Post]
 }
 
@@ -300,19 +325,26 @@ void MainTabs::buildParameters(AudioProcessor *audioProcessor) {
     panelSequencer->setParameterSet(audioProcessor);
     panelSequencer->buildParameters();
 
-    ShruthiAudioProcessor* shruthiProcessor = dynamic_cast<ShruthiAudioProcessor*>(audioProcessor);
-    shruthiProcessor->setShruthiSequencer(panelSequencer);
-    panelSequencer->setCanSendSequencerClass(shruthiProcessor);
+    AudioProcessorCommon* audioProcessorCommon = dynamic_cast<AudioProcessorCommon*>(audioProcessor);
+    audioProcessorCommon->setMISequencer(panelSequencer);
+
+    panelSequencer->setCanSendSequencerClass(audioProcessorCommon);
+
+#ifdef AMBIKA
+    audioProcessorCommon->setAmbikaMultiData(panelMulti);
+    panelMulti->setSettingsListener(audioProcessorCommon);
+#endif
 }
 
 void MainTabs::updateUI(std::unordered_set<String> &paramSet) {
 
+    if (paramSet.find("_Settings") != paramSet.end()) {
+        midiChannelCombo->setSelectedId(settingsListener->getMidiChannel());
+        if (settingsListener->needsPart()) {
+            partCombo->setSelectedId(settingsListener->getPart());
+        }
+    }
 
-	std::unordered_set<String>::const_iterator midiChannel = paramSet.find("Midi Channel");
-	if (midiChannel != paramSet.end()) {
-		MidifiedFloatParameter* param = getParameterFromName("Midi Channel");
-		midiChannelCombo->setSelectedId((int)param->getRealValue());
-	}
 
 	panelEngine->updateUI(paramSet);
 	panelModulation->updateUI(paramSet);
@@ -332,9 +364,39 @@ void MainTabs::setMidiOutBuffer(MidiBuffer *midiOutBuffer) {
 	this->midiOutBuffer = midiOutBuffer;
 }
 
+void MainTabs::setMISettingsListener(MISettingsListener* sl) {
+    settingsListener = sl;
 
-void MainTabs::setMidiChannel(int newMidiChannel) {
-	midiChannelCombo->setSelectedId(newMidiChannel);
+    if (settingsListener->needsPart()) {
+        addAndMakeVisible(partCombo = new ComboBox("Current Part"));
+        partCombo->setTooltip("Part");
+        partCombo->setEditableText(false);
+        partCombo->setJustificationType(Justification::centred);
+        partCombo->setColour(ComboBox::textColourId, Colours::whitesmoke);
+        partCombo->addItem("1", 1);
+        partCombo->addItem("2", 2);
+        partCombo->addItem("3", 3);
+        partCombo->addItem("4", 4);
+        partCombo->addItem("5", 5);
+        partCombo->addItem("6", 6);
+        partCombo->setSelectedId(1);
+        partCombo->addListener(this);
+
+        addAndMakeVisible(partComboLabel = new Label("Current Part Label", "Part"));
+        partComboLabel->setJustificationType(Justification::centredRight);
+
+        addAndMakeVisible(midiChannelLabel = new Label("Midi Channel Label", "Midi"));
+        midiChannelLabel->setJustificationType(Justification::centredRight);
+
+        midiChannelCombo->setEnabled(false);
+    }
+
+    if (!settingsListener->needsPresetName()) {
+        presetNameLabel->setVisible(false);
+    }
+
+    // Refresh UI
+    resized();
 }
 
 
@@ -373,7 +435,7 @@ BEGIN_JUCER_METADATA
               virtualName="" explicitFocusOrder="0" pos="116R 8 55 24" tooltip="Push all parameters from plugin to preenfm2"
               buttonText="Push" connectedEdges="0" needsCallback="1" radioGroupId="0"/>
   <LABEL name="preset name label" id="4201f054ae2edbe" memberName="presetNameLabel"
-         virtualName="" explicitFocusOrder="0" pos="40.027% 0.327% 200 32"
+         virtualName="" explicitFocusOrder="0" pos="40.057% 0.327% 200 32"
          tooltip="Click to edit" textCol="fff0f8ff" edTextCol="fff0f8ff"
          edBkgCol="0" hiliteCol="ffff7f50" labelText="preset" editableSingleClick="1"
          editableDoubleClick="1" focusDiscardsChanges="0" fontname="Default font"
@@ -384,8 +446,8 @@ BEGIN_JUCER_METADATA
             editable="0" layout="36" items="1&#10;2&#10;3&#10;4&#10;5&#10;6&#10;7&#10;8&#10;9&#10;10&#10;11&#10;12&#10;13&#10;14&#10;15&#10;16&#10;"
             textWhenNonSelected="1" textWhenNoItems="1"/>
   <TEXTBUTTON name="Device Button" id="69cb4ea6d744571b" memberName="deviceButton"
-              virtualName="" explicitFocusOrder="0" pos="340R 8 60 24" bgColOff="5c5da4"
-              bgColOn="fff0f8ff" buttonText="Midi" connectedEdges="0" needsCallback="1"
+              virtualName="" explicitFocusOrder="0" pos="340R 8 70 24" bgColOff="5c5da4"
+              bgColOn="fff0f8ff" buttonText="Device" connectedEdges="0" needsCallback="1"
               radioGroupId="0"/>
   <HYPERLINKBUTTON name="Version Button" id="e5c1a3ae8924210f" memberName="versionButton"
                    virtualName="" explicitFocusOrder="0" pos="58R 8 54 20" tooltip="https://github.com/Ixox/"

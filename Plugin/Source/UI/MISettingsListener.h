@@ -16,12 +16,25 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PanelEngine.h"
-
-#ifdef SHRUTHI
-#include "Shruthi/PanelEngineShruthi.cpp"
-#endif
+#pragma once
 
 #ifdef AMBIKA
-#include "Ambika/PanelEngineAmbika.cpp"
+#include "Ambika/AmbikaMultiData.h"
 #endif
+
+class MISettingsListener {
+public:
+    virtual void midiChannelChanged(int newMidiChannel) = 0;
+    virtual void partChanged(int newPart) = 0;
+    virtual void pushButtonPressed() = 0;
+    virtual void pullButtonPressed() = 0;
+    virtual bool needsPart() = 0;
+    virtual bool needsPresetName() = 0;
+    virtual int getMidiChannel() = 0;
+    virtual int getPart() = 0;
+#ifdef AMBIKA
+    virtual void sendMultiData(MultiData* md) = 0;
+    virtual void requestMultiDataTransfer() = 0;
+#endif
+
+};

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="nWJaEw" name="miPlugins" projectType="audioplug" version="0.9.1"
+              bundleIdentifier="com.ixox.ShruthiEditor" includeBinaryInAppConfig="1"
+              buildVST="1" buildVST3="0" buildAU="1" buildRTAS="0" buildAAX="0"
+              pluginName="Shruthi Editor" pluginDesc="Shruthi patch editor"
+              pluginManufacturer="Ixox" pluginManufacturerCode="Ixox" pluginCode="IxSh"
+              pluginChannelConfigs="{1, 1}, {2, 2}" pluginIsSynth="1" pluginWantsMidiIn="1"
+              pluginProducesMidiOut="0" pluginSilenceInIsSilenceOut="1" pluginEditorRequiresKeys="0"
+              pluginAUExportPrefix="ixshrut" pluginRTASCategory="" aaxIdentifier="com.ixox.ShruthiEditor"
+              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="5.1.2"
+              companyName="Xavier Hosxe" companyWebsite="http://github.com/Ixox"
+              companyEmail="xavier.hosxe@gmail.com" displaySplashScreen="1"
+              reportAppUsage="1" splashScreenColour="Dark" buildAUv3="0" buildStandalone="1"
+              enableIAA="0" pluginIsMidiEffectPlugin="0" cppLanguageStandard="11">
+  <MAINGROUP id="vhKV8J" name="miPlugins">
+    <GROUP id="{EFE41907-1B4E-9B80-EDC9-9E1B47462026}" name="png">
+      <FILE id="bDLyte" name="iconInfo.png" compile="0" resource="1" file="../Images/iconInfo.png"/>
+      <FILE id="rxcUSn" name="Shruthi1Icon.PNG" compile="0" resource="1"
+            file="../Images/Shruthi1Icon.PNG"/>
+    </GROUP>
+    <GROUP id="{C1BB27D8-689D-95C2-2F2A-98449E82469F}" name="Source">
+      <GROUP id="{6A1A9425-321E-7A19-717E-1F3856530001}" name="Third">
+        <FILE id="QcxXhE" name="AmbikaPatch.h" compile="0" resource="0" file="Source/Third/AmbikaPatch.h"/>
+        <FILE id="jqJhlK" name="Shruthi1Patch.h" compile="0" resource="0" file="Source/Third/Shruthi1Patch.h"/>
+      </GROUP>
+      <GROUP id="{F49C072E-8BC8-0D7D-2B1F-B2B26EBBCD90}" name="UI">
+        <GROUP id="{300171F4-6822-A1D3-51D8-FA85BFEAD557}" name="Ambika">
+          <FILE id="Rnu0iH" name="AmbikaMultiData.h" compile="0" resource="0"
+                file="Source/UI/Ambika/AmbikaMultiData.h"/>
+          <FILE id="w2kEQp" name="PanelEngineAmbika.cpp" compile="0" resource="0"
+                file="Source/UI/Ambika/PanelEngineAmbika.cpp"/>
+          <FILE id="ibq8v9" name="PanelEngineAmbika.h" compile="0" resource="0"
+                file="Source/UI/Ambika/PanelEngineAmbika.h"/>
+          <FILE id="TUv8po" name="PanelModulationAmbika.cpp" compile="0" resource="0"
+                file="Source/UI/Ambika/PanelModulationAmbika.cpp"/>
+          <FILE id="mItUy4" name="PanelModulationAmbika.h" compile="0" resource="0"
+                file="Source/UI/Ambika/PanelModulationAmbika.h"/>
+          <FILE id="y5PnCv" name="PanelMulti.cpp" compile="1" resource="0" file="Source/UI/Ambika/PanelMulti.cpp"/>
+          <FILE id="iW0M3Z" name="PanelMulti.h" compile="0" resource="0" file="Source/UI/Ambika/PanelMulti.h"/>
+          <FILE id="Do79g0" name="PanelSequencerAmbika.cpp" compile="0" resource="0"
+                file="Source/UI/Ambika/PanelSequencerAmbika.cpp"/>
+          <FILE id="DzFuCX" name="PanelSequencerAmbika.h" compile="0" resource="0"
+                file="Source/UI/Ambika/PanelSequencerAmbika.h"/>
+        </GROUP>
+        <GROUP id="{3C2B77ED-9D06-13BC-55BC-855494C02A93}" name="Shruthi">
+          <FILE id="HOIkct" name="PanelEngineShruthi.cpp" compile="0" resource="0"
+                file="Source/UI/Shruthi/PanelEngineShruthi.cpp"/>
+          <FILE id="lHej8j" name="PanelEngineShruthi.h" compile="0" resource="0"
+                file="Source/UI/Shruthi/PanelEngineShruthi.h"/>
+          <FILE id="Rln9L6" name="PanelModulationShruthi.cpp" compile="0" resource="0"
+                file="Source/UI/Shruthi/PanelModulationShruthi.cpp"/>
+          <FILE id="xWXWzF" name="PanelModulationShruthi.h" compile="0" resource="0"
+                file="Source/UI/Shruthi/PanelModulationShruthi.h"/>
+          <FILE id="KRMTb7" name="PanelSequencerShruthi.cpp" compile="0" resource="0"
+                file="Source/UI/Shruthi/PanelSequencerShruthi.cpp"/>
+          <FILE id="rwmszy" name="PanelSequencerShruthi.h" compile="0" resource="0"
+                file="Source/UI/Shruthi/PanelSequencerShruthi.h"/>
+        </GROUP>
+        <FILE id="I3UcT0" name="ComboAndSlider.cpp" compile="1" resource="0"
+              file="Source/UI/ComboAndSlider.cpp"/>
+        <FILE id="PPk9Jf" name="ComboAndSlider.h" compile="0" resource="0"
+              file="Source/UI/ComboAndSlider.h"/>
+        <FILE id="lB1LeK" name="Enveloppe.cpp" compile="1" resource="0" file="Source/UI/Enveloppe.cpp"/>
+        <FILE id="ngGEWc" name="Enveloppe.h" compile="0" resource="0" file="Source/UI/Enveloppe.h"/>
+        <FILE id="cjcTMS" name="EnveloppeAbstract.cpp" compile="1" resource="0"
+              file="Source/UI/EnveloppeAbstract.cpp"/>
+        <FILE id="Qw1ktH" name="EnveloppeAbstract.h" compile="0" resource="0"
+              file="Source/UI/EnveloppeAbstract.h"/>
+        <FILE id="wvxC8j" name="EnveloppeListener.h" compile="0" resource="0"
+              file="Source/UI/EnveloppeListener.h"/>
+        <FILE id="xRZPa1" name="MainTabs.cpp" compile="1" resource="0" file="Source/UI/MainTabs.cpp"/>
+        <FILE id="Mcsddl" name="MainTabs.h" compile="0" resource="0" file="Source/UI/MainTabs.h"/>
+        <FILE id="uaaprh" name="MISettingsListener.h" compile="0" resource="0"
+              file="Source/UI/MISettingsListener.h"/>
+        <FILE id="jGgIaE" name="MyLookAndFeel.cpp" compile="1" resource="0"
+              file="Source/UI/MyLookAndFeel.cpp"/>
+        <FILE id="dQT9wj" name="MyLookAndFeel.h" compile="0" resource="0" file="Source/UI/MyLookAndFeel.h"/>
+        <FILE id="N5XRAo" name="PanelEngine.cpp" compile="1" resource="0" file="Source/UI/PanelEngine.cpp"/>
+        <FILE id="ihEdyf" name="PanelEngine.h" compile="0" resource="0" file="Source/UI/PanelEngine.h"/>
+        <FILE id="ZQ2uBT" name="PanelModulation.cpp" compile="1" resource="0"
+              file="Source/UI/PanelModulation.cpp"/>
+        <FILE id="J8QiyV" name="PanelModulation.h" compile="0" resource="0"
+              file="Source/UI/PanelModulation.h"/>
+        <FILE id="ojjYcb" name="PanelOfComponents.cpp" compile="1" resource="0"
+              file="Source/UI/PanelOfComponents.cpp"/>
+        <FILE id="KpArSW" name="PanelOfComponents.h" compile="0" resource="0"
+              file="Source/UI/PanelOfComponents.h"/>
+        <FILE id="QrqTco" name="PanelSequencer.cpp" compile="1" resource="0"
+              file="Source/UI/PanelSequencer.cpp"/>
+        <FILE id="bVXvNy" name="PanelSequencer.h" compile="0" resource="0"
+              file="Source/UI/PanelSequencer.h"/>
+        <FILE id="TYf0tP" name="PluginEditor.cpp" compile="1" resource="0"
+              file="Source/UI/PluginEditor.cpp"/>
+        <FILE id="XL8pI7" name="PluginEditor.h" compile="0" resource="0" file="Source/UI/PluginEditor.h"/>
+        <FILE id="vBGtvA" name="sequencer_settings.cpp" compile="1" resource="0"
+              file="Source/UI/sequencer_settings.cpp"/>
+        <FILE id="AZZjpR" name="sequencer_settings.h" compile="0" resource="0"
+              file="Source/UI/sequencer_settings.h"/>
+        <FILE id="VREUGn" name="SequencerScore.cpp" compile="1" resource="0"
+              file="Source/UI/SequencerScore.cpp"/>
+        <FILE id="inNS3v" name="SequencerScore.h" compile="0" resource="0"
+              file="Source/UI/SequencerScore.h"/>
+        <FILE id="M8sLqf" name="ShruthiSequencer.h" compile="0" resource="0"
+              file="Source/UI/ShruthiSequencer.h"/>
+        <FILE id="XGuPLQ" name="SliderPfm2.h" compile="0" resource="0" file="Source/UI/SliderPfm2.h"/>
+        <FILE id="jcDVF5" name="StepSequencerListener.h" compile="0" resource="0"
+              file="Source/UI/StepSequencerListener.h"/>
+      </GROUP>
+      <GROUP id="{D9F9B506-6E32-2E70-EA61-619E2410CD85}" name="Utils">
+        <FILE id="X5mj3z" name="MidiDevice.cpp" compile="1" resource="0" file="Source/Utils/MidiDevice.cpp"/>
+        <FILE id="sOT4q8" name="MidiDevice.h" compile="0" resource="0" file="Source/Utils/MidiDevice.h"/>
+        <FILE id="f42GyJ" name="MidifiedFloatParameter.cpp" compile="1" resource="0"
+              file="Source/Utils/MidifiedFloatParameter.cpp"/>
+        <FILE id="m2MDOK" name="MidifiedFloatParameter.h" compile="0" resource="0"
+              file="Source/Utils/MidifiedFloatParameter.h"/>
+      </GROUP>
+      <FILE id="m8SCf8" name="AudioProcessorAmbika.cpp" compile="1" resource="0"
+            file="Source/AudioProcessorAmbika.cpp"/>
+      <FILE id="iUrbtA" name="AudioProcessorAmbika.h" compile="0" resource="0"
+            file="Source/AudioProcessorAmbika.h"/>
+      <FILE id="i7rEO3" name="AudioProcessorCommon.cpp" compile="1" resource="0"
+            file="Source/AudioProcessorCommon.cpp"/>
+      <FILE id="fWzcBH" name="AudioProcessorCommon.h" compile="0" resource="0"
+            file="Source/AudioProcessorCommon.h"/>
+      <FILE id="hJ73CA" name="AudioProcessorShruthi.cpp" compile="1" resource="0"
+            file="Source/AudioProcessorShruthi.cpp"/>
+      <FILE id="FZGh6u" name="AudioProcessorShruthi.h" compile="0" resource="0"
+            file="Source/AudioProcessorShruthi.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/Linux" vstFolder="~/SDKs/vstsdk2.4" extraCompilerFlags=""
+                bigIcon="R419NP" smallIcon="rxcUSn">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
+                       targetName="ShruthiEditor"/>
+        <CONFIGURATION name="Release" libraryPath="/usr/X11R6/lib/" isDebug="0" optimisation="2"
+                       targetName="ShruthiEditor"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+    <XCODE_MAC targetFolder="Builds/MacOSX" vstFolder="/Users/xhosxe/dev/VST3 SDK "
+               postbuildCommand="" vst3Folder="~/SDKs/VST3 SDK" extraCompilerFlags="-std=c++11&#10;-stdlib=libc++"
+               extraLinkerFlags="-std=c++11&#10;-stdlib=libc++" bigIcon="rxcUSn">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="64BitUniversal"
+                       isDebug="1" optimisation="1" targetName="ShruthiEditor" headerPath="/Users/xhosxe/dev/VST3 SDK"/>
+        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="64BitUniversal"
+                       isDebug="0" optimisation="2" targetName="ShruthiEditor" headerPath="/Users/xhosxe/dev/VST3 SDK"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="../../juce"/>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2015 targetFolder="Builds/VisualStudio2015" bigIcon="rxcUSn" extraDefs="">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Shruthi_x64_DEBUG" winWarningLevel="3" generateManifest="1"
+                       winArchitecture="x64" isDebug="1" optimisation="1" targetName="ShruthiEditorDebug_x64"
+                       defines="SHRUTHI=1"/>
+        <CONFIGURATION name="Shruthi_x64" winWarningLevel="3" generateManifest="1" winArchitecture="x64"
+                       isDebug="0" optimisation="3" targetName="ShruthiEditor_x64" defines="SHRUTHI=1"/>
+        <CONFIGURATION name="Shruthi_w32_DEBUG" winWarningLevel="3" generateManifest="1"
+                       winArchitecture="Win32" isDebug="1" optimisation="1" targetName="ShruthiEditorDebug_w32"
+                       defines="SHRUTHI=1"/>
+        <CONFIGURATION name="Shruthi_w32" winWarningLevel="3" generateManifest="1" winArchitecture="Win32"
+                       isDebug="0" optimisation="3" targetName="ShruthiEditor_w32" defines="SHRUTHI=1"/>
+        <CONFIGURATION name="Ambika_x64_DEBUG" winWarningLevel="3" generateManifest="1"
+                       winArchitecture="x64" isDebug="1" optimisation="1" targetName="AmbikaEditorDebug_x64"
+                       defines="AMBIKA=1&#10;"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_opengl" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_graphics" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_events" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_data_structures" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_cryptography" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_core" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="JuceLibraryCode\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JuceLibraryCode\modules"/>
+      </MODULEPATHS>
+    </VS2015>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULES id="juce_core" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_events" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_video" showAllCode="1" useLocalCopy="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_QUICKTIME="disabled"/>
+</JUCERPROJECT>

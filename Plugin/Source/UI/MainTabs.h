@@ -38,10 +38,15 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <unordered_set>
+#include "MISettingsListener.h"
+
 class MidifiedFloatParameter;
 class PanelEngine;
 class PanelModulation;
 class PanelSequencer;
+#ifdef AMBIKA
+class PanelMulti;
+#endif
 
 //[/Headers]
 
@@ -72,8 +77,8 @@ public:
 	void setPresetName(String presetName);
 	void setPresetNamePtr(char* presetNamePtr);
 	void setMidiOutBuffer(MidiBuffer *midiOutBuffer);
-	void setMidiChannel(int newMidiChannel);
 	MidifiedFloatParameter* getParameterFromName(String componentName);
+    void setMISettingsListener(MISettingsListener* sl);
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -86,16 +91,17 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-	int midiInfo;
 	AudioProcessor* audioProcessor;
 	PanelEngine* panelEngine;
 	PanelModulation* panelModulation;
     PanelSequencer* panelSequencer;
-	float pullButtonValue;
-	float pushButtonValue;
-	int currentMidiChannel;
-	MidiBuffer *midiOutBuffer;
+    PanelMulti* panelMulti;
+    MidiBuffer *midiOutBuffer;
 	char *presetNamePtr;
+    MISettingsListener* settingsListener;
+    ScopedPointer<Label> partComboLabel;
+    ScopedPointer<Label> midiChannelLabel;
+    ScopedPointer<ComboBox> partCombo;
     //[/UserVariables]
 
     //==============================================================================

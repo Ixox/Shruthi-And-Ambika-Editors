@@ -15,13 +15,23 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#include "PanelEngine.h"
+#include "AudioProcessorCommon.h"
 
-#ifdef SHRUTHI
-#include "Shruthi/PanelEngineShruthi.cpp"
-#endif
+class AudioProcessorShruthi : AudioProcessorCommon {
+public:
+    AudioProcessorShruthi();
+    void initAllParameters();
+    char sysexMachineCode() override;
+    void decodeSysexPatch(const uint8* message) override ;
+    void decodeSysexSequencer(const uint8* message) override;
+    void encodeSysexPatch(uint8* message) override;
+    void requestPatchTransfer() override;
+    void requestSequencerTransfer() override;
+    String getSynthName() override;
+    void sendSequencerToSynth();
+    void setStateParamSpecific(XmlElement* xmlState) override;
+    void getStateParamSpecific(XmlElement* xmlState) override;
 
-#ifdef AMBIKA
-#include "Ambika/PanelEngineAmbika.cpp"
-#endif
+};

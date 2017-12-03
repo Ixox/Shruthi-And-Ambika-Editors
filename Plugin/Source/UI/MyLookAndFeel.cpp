@@ -22,6 +22,9 @@
 MyLookAndFeel::MyLookAndFeel() : LookAndFeel_V4() {
 
 	setUsingNativeAlertWindows(false);    
+
+
+#ifdef SHRUTHI
     setColourScheme({
         0xff061723,   // windowBackground = 0,
         0xff061723,  // widgetBackground
@@ -33,15 +36,32 @@ MyLookAndFeel::MyLookAndFeel() : LookAndFeel_V4() {
         0xff446686,   // highlightedFill,
         0xffffffff    // menuText,
     });
-
-
     Colour selectableItemColour = Colour::fromString("0xff98FB98");
+    Colour backgroundColour = Colour::fromString("0xff002224");
+    Colour textColor = Colour::fromString("0xffe3e3e3");
+#endif
+#ifdef AMBIKA
+    setColourScheme({
+        0xff061723,   // windowBackground = 0,
+        0xff061723,  // widgetBackground
+        0xff061723,   // menuBackground,
+        0xffa6a6a6,   // outline,
+        0xffe3e3e3,   // defaultText,
+        0xff21ba90,   // defaultFill,
+        0xFFffe28a,   // highlightedText,
+        0xff446686,   // highlightedFill,
+        0xffffffff    // menuText,
+    });
+    Colour backgroundColour = Colour::fromString("0xFF384e63");
+    Colour selectableItemColour = Colour::fromString("0xFFffe28a");
+    Colour textColor = Colour::fromString("0xffe3e3e3");
+#endif
     setColour(ComboBox::textColourId, selectableItemColour);
     // setColour(PopupMenu::textColourId, selectableItemColour);
     setColour(Slider::rotarySliderFillColourId, selectableItemColour);
 
+    setColour(Label::textColourId, textColor);
 
-    Colour backgroundColour = Colour::fromString("0xff002224");
     setColour(PopupMenu::backgroundColourId, backgroundColour);
     setColour(ComboBox::backgroundColourId, backgroundColour);
     setColour(TextButton::buttonOnColourId, backgroundColour);
@@ -50,10 +70,9 @@ MyLookAndFeel::MyLookAndFeel() : LookAndFeel_V4() {
 
 
     setColour(Slider::thumbColourId, Colours::white);
-
     setColour(Slider::rotarySliderOutlineColourId, Colour::fromString("0xff888888"));
 
-    setColour(Label::textColourId, Colour::fromString("0xffe3e3e3"));
+
 }
 
 
@@ -68,13 +87,10 @@ void MyLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, int h
 
     auto radius = jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
     const auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    auto lineW = jmin(8.0f, radius * 0.5f);
+    auto lineW = jmax(6.0f, radius * 0.25f);
     auto arcRadius = radius - lineW * 0.5f;
 
-
-
-
-	Path backgroundArc;
+    Path backgroundArc;
 	backgroundArc.addCentredArc(bounds.getCentreX(),
 		bounds.getCentreY(),
 		arcRadius,
@@ -90,18 +106,22 @@ void MyLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, int h
 
 	if (slider.isEnabled())
 	{
+        float rsa = rotaryStartAngle;
+        if (slider.getMinimum() < 0) {
+            rsa = 3.15192653f * 2.0f;
+        }
 		Path valueArc;
 		valueArc.addCentredArc(bounds.getCentreX(),
 			bounds.getCentreY(),
 			arcRadius ,
 			arcRadius ,
 			0.0f,
-			rotaryStartAngle,
+            rsa,
 			toAngle,
 			true);
 
         g.setColour(fill);
-		g.strokePath(valueArc, PathStrokeType(lineW*.4f , PathStrokeType::curved, PathStrokeType::butt));
+		g.strokePath(valueArc, PathStrokeType(lineW *.6 , PathStrokeType::curved, PathStrokeType::butt));
 
 		const Point<float> thumbPoint(bounds.getCentreX() + radius * std::cos(toAngle - float_Pi * 0.5f),
 			bounds.getCentreY() + radius * std::sin(toAngle - float_Pi * 0.5f));

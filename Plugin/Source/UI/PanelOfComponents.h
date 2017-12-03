@@ -25,7 +25,7 @@
 #include "EnveloppeAbstract.h"
 #include "EnveloppeListener.h"
 #include "ComboAndSlider.h"
-#include "../MidifiedFloatParameter.h"
+#include "../Utils/MidifiedFloatParameter.h"
 
 #define TYPE_NOT_HERE  0
 #define TYPE_COMBO     1
@@ -88,8 +88,6 @@ public:
 		return parameter;
 	}
 
-	// Can be overriden by sub classes
-	virtual void updateSliderFromParameter_hook(Slider* slider) { }
 
 	void updateComboFromParameter(ComboBox* combo) {
 
@@ -131,6 +129,7 @@ public:
         int buttonState = button->getToggleState() ? 1 : 0;
         if (buttonState != (int)(parameter->getRealValue())) {
             button->setToggleState(((int)parameter->getRealValue()) == 1, dontSendNotification);
+            updateButtonFromParameter_hook(button);
         }
     }
 
@@ -158,6 +157,8 @@ public:
 
 	// Can be overriden by sub classes
 	virtual void updateComboFromParameter_hook(ComboBox* combo) { }
+    virtual void updateButtonFromParameter_hook(Button* button) { }
+    virtual void updateSliderFromParameter_hook(Slider* slider) { }
 
 
 	// Enveloppe Listener
@@ -180,7 +181,7 @@ public:
 				else {
 					value = enveloppeThatWasMoved->getY(pointNumber);
 				}
-				parameterReady->setRealValue((float)value);
+				parameterReady->setValueFromUI((float)value);
 			}
 		}
 	}

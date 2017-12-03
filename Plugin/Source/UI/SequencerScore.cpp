@@ -78,11 +78,12 @@ void SequencerScore::paint (Graphics& g)
     Colour whiteTrans = Colour::fromRGBA(255, 255, 255, 50);
 
     Rectangle<int> scoreBounds = getLocalBounds();
-    Rectangle<int>toHide = getLocalBounds();
+    Rectangle<int> toHide = getLocalBounds();
 
     int maxY = toHide.getWidth() * (17 - (stepMax + 1)) / 17;
 
     g.setColour(whiteTrans);
+    
     for (int n = 0; n < 12; n++) {
         Rectangle<int> oneNoteRect = scoreBounds.removeFromBottom(scoreBounds.getHeight() / (12 - n));
         if (noteType[n] == 1) {
@@ -162,17 +163,18 @@ void SequencerScore::resized()
 void SequencerScore::mouseDown (const MouseEvent& e)
 {
     //[UserCode_mouseDown] -- Add your code here...
-    int stepSize = getWidth() / 17;
-    int noteSize = getHeight() / 12;
-    int step = (e.getPosition().getX() - getX()) / stepSize - 1;
-    int note = 11 - e.getPosition().getY() / noteSize;
-    DBG("In score area !!! step " << step << " note " << note);
-    DBG(" mouse Y " << e.getPosition().getY() );
+    float stepSize = (float)getWidth() / 17.0f;
+    float noteSize = (float)getHeight() / 12.0f;
+    int step = ((float)e.getPosition().getX() / stepSize) - 1;
+    int note = 12 - (float)e.getPosition().getY() / noteSize;
+    //DBG("In score area !!! step " << step << " note " << note);
+    //DBG(" mouse X " << e.getPosition().getX() << " mous Y : " << e.getPosition().getY());
     if (note < 0 || note > 11 || step < 0 || step > (stepMax -1)) {
         return;
     }
     if (note != notes[step]) {
         DBG("NEW NOTE !");
+        notifyListeners(step, note);
         notes[step] = note;
         repaint();
     }
@@ -198,7 +200,7 @@ void SequencerScore::setNotes(int* newNotes) {
 
 void SequencerScore::setEvents(int* newEvents) {
     for (int s = 0; s < 16; s++) {
-        DBG("NEW EVENT : " << s << " value : " << newEvents[s]);
+//        DBG("NEW EVENT : " << s << " value : " << newEvents[s]);
         if (newEvents[s] >= 1 && newEvents[s] <= 3) {
             events[s] = newEvents[s];
         }
@@ -214,6 +216,46 @@ void SequencerScore::setStepMax(int sm) {
     stepMax = sm;
     repaint();
 }
+
+
+void SequencerScore::addListener(Listener *listener) {
+    listeners.push_back(listener);
+}
+
+void SequencerScore::removeListener(Listener *listener) {
+    SequencerScoreListenerList::iterator iterator = listeners.begin();
+    while (iterator != listeners.end() && listeners.size() > 0) {
+        if (*iterator == listener) {
+            iterator = listeners.erase(iterator);
+        }
+        else {
+            ++iterator;
+        }
+    }
+}
+
+void SequencerScore::notifyListeners(int step, int newNote) {
+    for (SequencerScoreListenerList::const_iterator iterator = listeners.begin(); iterator != listeners.end(); ++iterator) {
+        (*iterator)->noteChanged(this, step, newNote);
+    }
+}
+
+void SequencerScore::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) {
+    //[UserCode_mouseDown] -- Add your code here...
+    float stepSize = (float)getWidth() / 17.0f;
+    int step = ((float)e.getPosition().getX() / stepSize) - 1;
+    notes[step] += (wheel.deltaY < 0 ? -1 : 1);
+    if (notes[step] < 0) {
+        notes[step] = 11;
+    }
+    if (notes[step] > 11) {
+        notes[step] = 0;
+    }
+    notifyListeners(step, notes[step]);
+    repaint();
+}
+
+
 //[/MiscUserCode]
 
 

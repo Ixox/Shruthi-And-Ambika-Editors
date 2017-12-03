@@ -17,15 +17,14 @@
 */
 
 
-#ifndef SHRUTHI_SEQUENCER_H_
-#define SHRUTHI_SEQUENCER_H_
+#ifndef MI_SEQUENCER_H_
+#define MI_SEQUENCER_H_
 
-#include "sequencer_settings.h"
 
-class ShruthiSequencer {
+class MISequencer {
 public:
-    virtual shruthi::SequenceStep* getSequencerSteps() = 0;
-    virtual void setSequencerSteps(shruthi::SequenceStep newSteps[16]) = 0;
+    virtual uint8* getSequencerSteps() = 0;
+    virtual void setSequencerSteps(uint8 steps[32]) = 0;
 };
 
-#endif // SHRUTHI_SEQUENCER_H_
+#endif // MI_SEQUENCER_H_

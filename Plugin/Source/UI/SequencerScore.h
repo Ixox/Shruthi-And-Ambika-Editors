@@ -52,14 +52,27 @@ public:
     void resized() override;
     void mouseDown (const MouseEvent& e) override;
     void mouseDrag (const MouseEvent& e) override;
+    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
 
-
+    class JUCE_API  Listener
+    {
+    public:
+        //==============================================================================
+        /** Destructor. */
+        virtual ~Listener() {}
+        virtual void noteChanged(SequencerScore* sequencer, int step, int newNote) = 0;
+    };
+    typedef std::vector<Listener *> SequencerScoreListenerList;
+    void addListener(Listener* listener);
+    void removeListener(Listener* listener);
+    void notifyListeners(int step, int newNote);
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     int notes[16];
     int events[16];
     int stepMax;
+    SequencerScoreListenerList listeners;
     //[/UserVariables]
 
     //==============================================================================
