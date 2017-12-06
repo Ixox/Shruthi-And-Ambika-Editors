@@ -18,6 +18,8 @@
 #pragma once
 
 #include "AudioProcessorCommon.h"
+#include "UI/sequencer_settings.h"
+#include "UI/Shruthi/FilterTypeUI.h"
 
 class AudioProcessorShruthi : AudioProcessorCommon {
 public:
@@ -30,9 +32,17 @@ public:
     void requestPatchTransfer() override;
     void requestSequencerTransfer() override;
     String getSynthName() override;
-    void sendSequencerToSynth();
+    void sendSequencerToSynth(uint8* sequencer);
+
     void setStateParamSpecific(XmlElement* xmlState) override;
     void getStateParamSpecific(XmlElement* xmlState) override;
     void choseNewMidiDevice() override;
+    uint8* getSequencerData() override { return (uint8*)&steps; }
+    void setFilterType(int ft) override;
+    void setFilterTypeUI(FilterTypeUI* ftUI) override;
 
+private:
+    struct shruthi::SequenceStep steps[16];
+    int filterType;
+    FilterTypeUI* filterTypeUI;
 };

@@ -23,51 +23,70 @@
 
 typedef std::vector<MidiInputCallback *> MidiInputCallbackList;
 
+#define NUMBER_OF_DEVICES 32
 
-// This class must be used with a SharedResourcePointer so that multiple instance of a plugin use the same port
+struct OpenedDevice {
+    int numberOfUsage;
+    int midiChannelForPart[6];
+    bool partUsed[6];
+    MidiInput* midiInput;
+    MidiOutput* midiOutput;
+    String deviceNameInput;
+    String deviceNameOutput;
+};
+
+
+// This class must be used with a SharedResourcePointer so that multiple instance of a plugin use the same ports
 class MidiDevice : public MidiInputCallback
 {
 public:
-    // There's no need to ever create an instance of this class directly yourself,
-    // but it does need a public constructor that does the initialisation.
     MidiDevice();
     ~MidiDevice();
 
-    MidiOutput* getMidiOutput() {
-        return pfm2MidiOutput;
-    }
+    void setSynthName(String sn) { synthName = sn;  }
+    void saveLastChosenDevice();
 
-    MidiInput* getMidiInput() {
-        return pfm2MidiInput;
-    }
-    void resetDevices();
-    int choseNewDevices(String synthName);
-    int forceChoseNewDevices(String synthName);
-    void sendBlockOfMessagesNow(MidiBuffer& midiBuffer, String synthName);
-    // == MidiInputCallback
-    void handleIncomingMidiMessage(MidiInput *source, const MidiMessage &message);
-    void handlePartialSysexMessage(MidiInput *source, const uint8 *messageData, int numBytesSoFar, double timestamp);
+    // return deviceNumber or -1
+    int openChoseDeviceWindow(int deviceNumber);
+    int getDeviceNumber(String deviceNameInput, String deviceNameOutput);
+    // return deviceNumber or -1
+    int openDevice(int deviceNumber, String deviceNameInput, String deviceNameOutput);
+
+    void closeDevice(int deviceNumber, bool force);
+    void closeAllDevices();
+
+    MidiOutput* getMidiOutput(int deviceNumber);
+    MidiInput* getMidiInput(int deviceNumber);
+    String getMidiInputDeviceName(int deviceNumber) { return devices[deviceNumber].deviceNameInput; }
+    String getMidiOutputDeviceName(int deviceNumber) { return devices[deviceNumber].deviceNameOutput; }
+
+    bool sendBlockOfMessagesNow(int deviceNumber, MidiBuffer& midiBuffer);
+
     // Listeners
     void addListener(MidiInputCallback *listener);
     void removeListener(MidiInputCallback *listener);
 
     // Maintain a part/channel association for all plugin instance
-    void setMidiChannelForPart(int a[6]);
-    int* getMidiChannelForPart();
+    void setMidiChannelForPart(int deviceNumber, int a[6]);
+    int* getMidiChannelForPart(int deviceNumber);
+
+    // == MidiInputCallback
+    void handleIncomingMidiMessage(MidiInput *source, const MidiMessage &message);
+    void handlePartialSysexMessage(MidiInput *source, const uint8 *messageData, int numBytesSoFar, double timestamp);
+
+    int getDefaultDeviceNumber() { return defaultDeviceNumber; }
 
 private:
-	ApplicationProperties pfm2AppProps;
+    String synthName;
+	ApplicationProperties appProperties;
 	bool showErrorMEssage;
 	CriticalSection messageLock;
-	MidiOutput* pfm2MidiOutput;
-	String currentMidiOutputDevice;
-	MidiInput* pfm2MidiInput;
-	String currentMidiInputDevice;
 	MidiInputCallbackList listeners;
-    int midiChannelForPart[6];
+    int lastUsedDevice;
+    int defaultDeviceNumber;
+    struct OpenedDevice devices[NUMBER_OF_DEVICES];
+
 };
-
-
 
 
 #endif

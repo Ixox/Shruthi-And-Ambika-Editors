@@ -17,14 +17,12 @@
 */
 
 
-#ifndef MI_SEQUENCER_H_
-#define MI_SEQUENCER_H_
+#pragma once
+
+#include "JuceHeader.h"
 
 
-class MISequencer {
+class FilterTypeUI {
 public:
-    virtual uint8* getSequencerData() = 0;
-    virtual void setSequencerData(uint8* seqData) = 0;
+    virtual void setFitlerType(int ft) = 0;
 };
-
-#endif // MI_SEQUENCER_H_

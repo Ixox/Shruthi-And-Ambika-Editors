@@ -345,6 +345,9 @@ PanelMulti::PanelMulti ()
 
 
     //[Constructor] You can add your own custom stuff here..
+    if (settingsListener && useMultiButton->getToggleState()) {
+        settingsListener->sendMultiDataToAmbika(getMultiData());
+    }
     settingsListener = nullptr;
     //[/Constructor]
 }
@@ -507,9 +510,7 @@ void PanelMulti::comboOrSliderValueChanged(ComboAndSlider* slider) {
 
 void PanelMulti::buttonClicked(Button *buttonThatWasClicked) {
     if (buttonThatWasClicked == pushMultiButton) {
-        if (buttonThatWasClicked == pushMultiButton) {
-            settingsListener->sendMultiData(getMultiData());
-        }
+        settingsListener->sendMultiDataToAmbika(getMultiData());
     }
     if (buttonThatWasClicked == useMultiButton) {
         bool state = useMultiButton->getToggleState();
@@ -534,11 +535,13 @@ void PanelMulti::buttonClicked(Button *buttonThatWasClicked) {
             knobTarget[p]->setEnabled(state);
         }
 
-        if (state && settingsListener != nullptr) {
-            settingsListener->requestMultiDataTransfer();
+        if (settingsListener != nullptr) {
+            settingsListener->setMultiDataUsed(state);
+            if (state) {
+                settingsListener->requestMultiDataTransfer();
+            }
         }
     }
-
 }
 
 

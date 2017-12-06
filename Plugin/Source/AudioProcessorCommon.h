@@ -41,13 +41,15 @@ struct Nrpn {
 #define NRPN_VIRTUAL_FILTER2_RESONNANCE 201
 #define NRPN_VIRTUAL_FILTER1_MODE 202
 #define NRPN_VIRTUAL_FILTER2_MODE 203
+#define NRPN_VIRTUAL_4PM_MODE 204
+#define NRPN_VIRTUAL_4PM_FLAVOR 205
 #define NRPN_VIRTUAL_LEGATO 210
 #define NRPN_VIRTUAL_PORTAMENTO 211
 #define NRPN_VIRTUAL_MAX 250
 
 class AudioProcessorEditorCommon;
 #ifdef AMBIKA
-class AmbikaMultiData;
+class AmbikaMultiDataUI;
 #endif
 //==============================================================================
 /**
@@ -55,7 +57,7 @@ class AmbikaMultiData;
 
 class CanSendSequencerClass {
 public:
-    virtual void sendSequencer(uint8 steps[32]) = 0;
+    virtual void sendSequencerToSynth(uint8* sequencer) = 0;
     virtual void requestSequencerTransfer() = 0;
     virtual bool needsRealTimeUpdate() = 0;
     virtual void setRealTimeUpdate(int param, int value) = 0;
@@ -124,7 +126,7 @@ public:
 	virtual void choseNewMidiDevice() = 0;
 
     // Sysex
-    void sendSysexPatch();
+    void sendPatchToSynth();
     virtual void requestPatchTransfer() = 0;
     virtual void decodeSysexPatch(const uint8* message) = 0;
     virtual void decodeSysexSequencer(const uint8* message) = 0;
@@ -138,11 +140,10 @@ public:
 
     // CanSendSequencerClass
     virtual void requestSequencerTransfer() override  = 0;
-    void sendSequencer(uint8 steps[32]) override;
+    virtual uint8* getSequencerData() = 0;
     virtual bool needsRealTimeUpdate() override { return false; }
     virtual void setRealTimeUpdate(int param, int value) override {}
 
-    virtual void sendSequencerToSynth() = 0;
     // Different in Shruthi and Ambika
     virtual char sysexMachineCode() = 0;
 
@@ -157,9 +158,6 @@ public:
     int getPart() { return currentPart; }
     virtual void decodeSysexPartData(const uint8* pdata) {};
 
-#ifdef AMBIKA
-    virtual void setAmbikaMultiData(AmbikaMultiData* amd) = 0;
-#endif
 
 
 protected:
@@ -171,12 +169,13 @@ protected:
     int currentPart;
     int currentMidiChannel;
     int midiChannelForPart[6];
-    uint8 miSteps[32];
     MidiBuffer midiOutBuffer;
     bool canReceiveSysexPatch; // 
     bool canReceiveSysexSequencer; // 
-    MISequencer* shruthiSequencer;
+    MISequencer* sequencerUI;
     SharedResourcePointer<MidiDevice> midiDevice;
+    int midiDeviceNumber;
+    bool askForMidiDevice;
 private:
     bool receivingMultiPart;
     int editorWidth, editorHeight;

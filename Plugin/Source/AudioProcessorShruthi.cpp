@@ -16,11 +16,22 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef SHRUTHI
+
 #include "AudioProcessorShruthi.h"
 
 AudioProcessorShruthi::AudioProcessorShruthi()
     : AudioProcessorCommon() 
 {
+    for (int k = 0; k < 16; k++) {
+        steps[k].data_[0] = 0;
+        steps[k].data_[1] = 0;
+        steps[k].set_note(36 + ((k * 2) % 16));
+        steps[k].set_gate((k % 2) == 0);
+        steps[k].set_velocity((7 - (k%2)*5) << 4);
+        steps[k].set_controller(5 + ((k *2) % 7));
+    }
+    filterType = 0;
 }
 
 
@@ -183,6 +194,26 @@ void AudioProcessorShruthi::initAllParameters() {
     newParam->setUseThisCC(86);
     addMidifiedParameter(newParam);
     ccIndex[86] = parameterIndex;
+    nrpmIndex[nrpmParam] = parameterIndex++;
+
+
+    // ============================================= 4PM ==============================
+    //addAndMakeVisible(filter4PMMode = new ComboBox("Filter4PM Mode"));
+    //addAndMakeVisible(filter4PMFlavor = new ComboBox("Filter4PM Flavor"));
+    nrpmParam = NRPN_VIRTUAL_4PM_MODE;
+    // Force CC for this param
+    newParam = new MidifiedFloatParameter(String("Filter4PM Mode"), nrpmParam, 1, 0, 14, 0);
+    newParam->setUseThisCC(92);
+    addMidifiedParameter(newParam);
+    ccIndex[92] = parameterIndex;
+    nrpmIndex[nrpmParam] = parameterIndex++;
+
+    nrpmParam = NRPN_VIRTUAL_4PM_FLAVOR;
+    // Force CC for this param
+    newParam = new MidifiedFloatParameter(String("Filter4PM Flavor"), nrpmParam, 1, 0, 3, 0);
+    newParam->setUseThisCC(93);
+    addMidifiedParameter(newParam);
+    ccIndex[93] = parameterIndex;
     nrpmIndex[nrpmParam] = parameterIndex++;
 
 
@@ -476,11 +507,20 @@ void AudioProcessorShruthi::encodeSysexPatch(uint8* patch) {
         patch[b] = midifiedFP->getRealValue();
     }
 
-    // 86 : SVF Filter
-    midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER1_MODE]];
-    patch[86] = (uint8)((int)midifiedFP->getRealValue() << 4);
-    midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER2_MODE]];
-    patch[86] |= (uint8)((int)midifiedFP->getRealValue() & 0xff);
+    if (filterType == 1) {
+        // 86 : SVF Filter
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER1_MODE]];
+        patch[86] = (uint8)((int)midifiedFP->getRealValue() << 4);
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER2_MODE]];
+        patch[86] |= (uint8)((int)midifiedFP->getRealValue() & 0xff);
+    }
+    else if (filterType == 2) {
+        // 4PM
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_4PM_MODE]];
+        patch[86] = (uint8)((int)midifiedFP->getRealValue() << 4);
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_4PM_FLAVOR]];
+        patch[86] |= (uint8)((int)midifiedFP->getRealValue() & 0xff);
+    }
 
     // 87 - 91 : OPERATORS
     uint8 op_data_[4];
@@ -501,6 +541,11 @@ void AudioProcessorShruthi::encodeSysexPatch(uint8* patch) {
 }
 
 void AudioProcessorShruthi::decodeSysexPatch(const uint8* patch) {
+    if (!canReceiveSysexPatch) {
+        return;
+    }
+    canReceiveSysexPatch = true;
+
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
     MidifiedFloatParameter* midifiedFP;
 
@@ -566,22 +611,35 @@ void AudioProcessorShruthi::decodeSysexPatch(const uint8* patch) {
     midifiedFP->setValueFromNrpn(extra_data_[7]);
 
 
-    // 84 - 85 :   uint8_t filter_cutoff_2 uint8_t filter_resonance_2;
-    for (int b = 84; b < 86; b++) {
-        uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
-        int index = nrpmIndex[NRPN_VIRTUAL_FILTER2_CUTOFF + b - 84];
-        MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
-        midifiedFP->setValueFromNrpn((int)byte);
-    }
 
-    // 86 : SVF Filter
-    uint8 filter_topology_ = patch[86 * 2] * 0x10 + patch[86 * 2 + 1];
-    uint8 filter_1_mode_ = filter_topology_ >> 4;
-    midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER1_MODE]];
-    midifiedFP->setValueFromNrpn(filter_1_mode_);
-    uint8 filter_2_mode_ = filter_topology_ & 0xf;
-    midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER2_MODE]];
-    midifiedFP->setValueFromNrpn(filter_2_mode_);
+    if (filterType == 1) {
+        // 86 : SVF Filter
+        // 84 - 85 :   uint8_t filter_cutoff_2 uint8_t filter_resonance_2;
+        for (int b = 84; b < 86; b++) {
+            uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
+            int index = nrpmIndex[NRPN_VIRTUAL_FILTER2_CUTOFF + b - 84];
+            MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
+            midifiedFP->setValueFromNrpn((int)byte);
+        }
+
+        uint8 filter_topology_ = patch[86 * 2] * 0x10 + patch[86 * 2 + 1];
+        uint8 filter_1_mode_ = filter_topology_ >> 4;
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER1_MODE]];
+        midifiedFP->setValueFromNrpn(filter_1_mode_);
+        uint8 filter_2_mode_ = filter_topology_ & 0xf;
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_FILTER2_MODE]];
+        midifiedFP->setValueFromNrpn(filter_2_mode_);
+    }
+    else if (filterType == 2) {
+        // 4PM
+        uint8 filter_topology_ = patch[86 * 2] * 0x10 + patch[86 * 2 + 1];
+        uint8 filter_mode = filter_topology_ >> 4;
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_4PM_MODE]];
+        midifiedFP->setValueFromNrpn(filter_mode);
+        uint8 filter_flavor = filter_topology_ & 0xf;
+        midifiedFP = (MidifiedFloatParameter*)parameterSet[nrpmIndex[NRPN_VIRTUAL_4PM_FLAVOR]];
+        midifiedFP->setValueFromNrpn(filter_flavor);
+    }
 
     // 87 - 91 : OPERATORS
     uint8 op_data_[4];
@@ -622,14 +680,24 @@ String AudioProcessorShruthi::getSynthName() {
 void AudioProcessorShruthi::requestPatchTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x02, 0x11, 0x00, 0x00, 0x00 };
     sendSysex(MidiMessage::createSysExMessage(command, 9));
+    canReceiveSysexPatch = true;
 }
 
 void AudioProcessorShruthi::requestSequencerTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x02, 0x12, 0x00, 0x00, 0x00 };
     sendSysex(MidiMessage::createSysExMessage(command, 9));
+    canReceiveSysexSequencer = true;
 }
 
-void AudioProcessorShruthi::sendSequencerToSynth() {
+void AudioProcessorShruthi::sendSequencerToSynth(uint8* sequencer) {
+
+    if (sequencer != nullptr) {
+        for (int s = 0; s < 16; s++) {
+            steps[s].data_[0] = sequencer[s * 2];
+            steps[s].data_[1] = sequencer[s * 2 + 1];
+        }
+    }
+
     // SEND SYSEX
     DBG(" SEND SYSEX --------------------------");
     uint8 message[128];
@@ -642,8 +710,8 @@ void AudioProcessorShruthi::sendSequencerToSynth() {
     int index = 7;
     int checkSum = 0;
     for (int s = 0; s < 16; s++) {
-        uint8 data1 = miSteps[s * 2];
-        uint8 data2 = miSteps[s * 2 + 1];
+        uint8 data1 = steps[s].data_[0];
+        uint8 data2 = steps[s].data_[1];
 
         message[index++] = data1 >> 4;
         message[index++] = data1 & 0xf;
@@ -658,16 +726,20 @@ void AudioProcessorShruthi::sendSequencerToSynth() {
 
     sendSysex(MidiMessage::createSysExMessage(message, index));
 }
-void AudioProcessorShruthi::decodeSysexSequencer(const uint8* steps) {
+void AudioProcessorShruthi::decodeSysexSequencer(const uint8* sysexSteps) {
+    if (!canReceiveSysexSequencer) {
+        return;
+    }
+    canReceiveSysexSequencer = true;
 
     DBG("YEAH NEW SHRUTHI SEQUENCER!!!");
     for (int b = 0; b < 16; b++) {
-        miSteps[b * 2] = steps[b * 4] * 0x10 + steps[b * 4 + 1];
-        miSteps[b * 2 + 1] = steps[b * 4 + 2] * 0x10 + steps[b * 4 + 3];
+        steps[b].data_[0] = sysexSteps[b * 4] * 0x10 + sysexSteps[b * 4 + 1];
+        steps[b].data_[1] = sysexSteps[b * 4 + 2] * 0x10 + sysexSteps[b * 4 + 3];
     }
     const MessageManagerLock mmLock;
-    if (shruthiSequencer != nullptr) {
-        shruthiSequencer->setSequencerSteps(miSteps);
+    if (sequencerUI != nullptr) {
+        sequencerUI->setSequencerData((uint8*)steps);
     }
 }
 
@@ -675,19 +747,63 @@ void AudioProcessorShruthi::decodeSysexSequencer(const uint8* steps) {
 void AudioProcessorShruthi::setStateParamSpecific(XmlElement* xmlState) {
     currentMidiChannel = xmlState->getIntAttribute("CurrentMidiChannel", 1);
     settingsChangedForUI();
+
+    int filterType = xmlState->getIntAttribute("FilterType");
+    if (audioProcessorEditor != nullptr) {
+        filterTypeUI->setFitlerType(filterType);
+    }
+
+    if (xmlState->hasAttribute("SequencerStep0")) {
+        for (int s = 0; s < 8; s++) {
+            int stepValue = xmlState->getIntAttribute("SequencerStep" + String(s));
+            steps[s * 2].data_[0] = (stepValue >> 24) & 0xff;
+            steps[s * 2].data_[1] = (stepValue >> 16) & 0xff;
+            steps[s * 2 + 1].data_[0] = (stepValue >> 8) & 0xff;
+            steps[s * 2 + 1].data_[1] = stepValue & 0xff;
+        }
+        if (sequencerUI != nullptr) {
+            sequencerUI->setSequencerData((uint8*)steps);
+        }
+        sendSequencerToSynth((uint8*)nullptr);
+    }
 }
 
 void AudioProcessorShruthi::getStateParamSpecific(XmlElement* xml) {
     xml->setAttribute("CurrentMidiChannel", currentMidiChannel);
-}
 
+    // If shruthi sequencer UI is open, let's use latest data
+    if (sequencerUI != nullptr) {
+        uint8 *currentSteps = sequencerUI->getSequencerData();
+        for (int s = 0; s < 16; s++) {
+            steps[s].data_[0] = currentSteps[s * 2];
+            steps[s].data_[1] = currentSteps[s * 2 + 1];
+        }
+    }
+    for (int s = 0; s < 8; s++) {
+        xml->setAttribute("SequencerStep" + String(s), (steps[s * 2].data_[0] << 24) + (steps[s * 2].data_[1] << 16) + (steps[s * 2 + 1].data_[0] << 8) + steps[s * 2 + 1].data_[1]);
+    }
+
+    xml->setAttribute("FilterType", filterType);
+
+}
 
 void AudioProcessorShruthi::choseNewMidiDevice() {
-    midiDevice->forceChoseNewDevices(getSynthName());
+    int newDeviceNumber = midiDevice->openChoseDeviceWindow(midiDeviceNumber);
+    if (newDeviceNumber >= 0) {
+        midiDeviceNumber = newDeviceNumber;
+    }
+}
+
+void AudioProcessorShruthi::setFilterType(int ft) {
+    filterType = ft;
+    DBG("NEW FILTER TYPE...");
+}
+
+void AudioProcessorShruthi::setFilterTypeUI(FilterTypeUI* ftUI) {
+    filterTypeUI = ftUI;
 }
 
 
-#ifdef SHRUTHI
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     AudioProcessorShruthi* audioProcessor = new AudioProcessorShruthi();

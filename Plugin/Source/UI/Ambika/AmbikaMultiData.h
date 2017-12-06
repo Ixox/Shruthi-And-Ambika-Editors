@@ -79,10 +79,10 @@ struct MultiData {
 };
 
 
-class AmbikaMultiData {
+class AmbikaMultiDataUI {
 public:
     virtual MultiData* getMultiData() = 0;
+    virtual void setMultiDataUsed(bool mdu) = 0;
     virtual void setMultiData(MultiData* md) = 0;
     virtual bool isMultiDataUsed() = 0;
-    virtual void setMultiDataUsed(bool mdu) = 0;
 };

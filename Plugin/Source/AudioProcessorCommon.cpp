@@ -30,13 +30,27 @@ AudioProcessorCommon::AudioProcessorCommon()
 	myLookAndFeel = new MyLookAndFeel();
 	LookAndFeel::setDefaultLookAndFeel(myLookAndFeel);
 
-	// Register to midi device even if not initialized correctly
-	midiDevice->addListener(this);
+    midiDeviceNumber = midiDevice->getDefaultDeviceNumber();
+    currentPart = 1;
+    currentMidiChannel = 1;
 
-    int* midiChannelsFromSettings = midiDevice->getMidiChannelForPart();
-    for (int c = 0; c < 6; c++) {
-        midiChannelForPart[c] = midiChannelsFromSettings[c];
+#ifdef AMBIKA
+    if (midiDeviceNumber == -1) {
+        currentMidiChannel = 1;
+        for (int c = 0; c < 6; c++) {
+            midiChannelForPart[c] = c + 1;
+        }
     }
+    else {
+        int* cfp = midiDevice->getMidiChannelForPart(midiDeviceNumber);
+        for (int c = 0; c < 6; c++) {
+            midiChannelForPart[c] = cfp[c];
+        }
+        currentMidiChannel = midiChannelForPart[1];
+    }
+#endif
+
+    askForMidiDevice = true;
 
 
 	// Important !!!! reset paramIndexCounter.
@@ -59,18 +73,18 @@ AudioProcessorCommon::AudioProcessorCommon()
 
 	midiMessageCollector.reset(44100);
 
-
     // Sequencer init
-    shruthiSequencer = nullptr;
+    sequencerUI = nullptr;
     srand(time(NULL));
 
     // ============================================================
     presetName = "No patch";
 
     // Midi Channel & Part
-    currentMidiChannel = 1;
-    currentPart = 1;
+    midiDevice->addListener(this);
     receivingMultiPart = false;
+    canReceiveSysexPatch = false;
+    canReceiveSysexSequencer = false;
 }
 
 
@@ -159,7 +173,7 @@ void AudioProcessorCommon::processBlock(AudioSampleBuffer& buffer, MidiBuffer& m
 
 	buffer.clear();
 
-	if (midiMessages.getNumEvents() > 0 && midiDevice->getMidiOutput() != nullptr) {
+	if (midiMessages.getNumEvents() > 0) {
 		MidiBuffer::Iterator i(midiMessages);
 		MidiMessage message;
 		int samplePosition; // Note: not actually used, so no need to initialise.
@@ -172,10 +186,9 @@ void AudioProcessorCommon::processBlock(AudioSampleBuffer& buffer, MidiBuffer& m
 		}
 
 		if (newMidiNotes.getNumEvents() > 0) {
-			if (newMidiNotes.getNumEvents() > 1) {
-				DBG("MIDI NOTES : " << newMidiNotes.getNumEvents());
-			}
-			midiDevice->getMidiOutput()->sendBlockOfMessagesNow(newMidiNotes);
+			DBG("MIDI NOTES : " << newMidiNotes.getNumEvents());
+            if (!midiDevice->sendBlockOfMessagesNow(midiDeviceNumber, newMidiNotes)) {
+            }
 		}
 	}
 
@@ -192,7 +205,7 @@ void AudioProcessorCommon::editorClosed() {
     editorWidth = audioProcessorEditor->getWidth();
     editorHeight = audioProcessorEditor->getHeight();
     audioProcessorEditor = nullptr;
-    shruthiSequencer = nullptr;    
+    sequencerUI = nullptr;    
 }
 
 
@@ -207,7 +220,7 @@ AudioProcessorEditor* AudioProcessorCommon::createEditor()
     // Update Editor Channel and Part
     settingsChangedForUI();
 
-    shruthiSequencer->setSequencerSteps(miSteps);
+    sequencerUI->setSequencerData(getSequencerData());
 	return audioProcessorEditor;
 }
 
@@ -229,18 +242,6 @@ void AudioProcessorCommon::getStateInformation(MemoryBlock& destData)
 		xml.setAttribute(midifiedFP->getNameForXML(), midifiedFP->getRealValue());
 	}
     
-    // If shruthi sequencer UI is open, let's use latest data
-    if (shruthiSequencer != nullptr) {
-        uint8 *currentSteps = shruthiSequencer->getSequencerSteps();
-        for (int s = 0; s < 16; s++) {
-            miSteps[s] = currentSteps[s];
-        }
-    }
-
-    for (int s = 0; s < 16; s++) {
-        xml.setAttribute("SequencerStep" + String(s), (miSteps[s * 2] << 8) + miSteps[s * 2 + 1]);
-    }
-
     // Update editorWidth and editorHeight
     if (audioProcessorEditor != nullptr) {
         editorWidth = audioProcessorEditor->getWidth();
@@ -249,6 +250,11 @@ void AudioProcessorCommon::getStateInformation(MemoryBlock& destData)
 
     xml.setAttribute("EditorWidth", editorWidth);
     xml.setAttribute("EditorHeight", editorHeight);
+
+    if (midiDeviceNumber >= 0) {
+        xml.setAttribute("MidiDeviceInputName", midiDevice->getMidiInputDeviceName(midiDeviceNumber));
+        xml.setAttribute("MidiDeviceOutputName", midiDevice->getMidiOutputDeviceName(midiDeviceNumber));
+    }
 
     // Different for Ambika and Shurthi
     getStateParamSpecific(&xml);
@@ -269,7 +275,7 @@ void AudioProcessorCommon::setStateInformation(const void* data, int sizeInBytes
 	{
 		presetName = xmlState->getStringAttribute("presetName");
 
-		if (audioProcessorEditor) {
+		if (audioProcessorEditor != nullptr) {
 			audioProcessorEditor->setPresetName(presetName);
 		}
 
@@ -297,6 +303,13 @@ void AudioProcessorCommon::setStateInformation(const void* data, int sizeInBytes
             if (audioProcessorEditor != nullptr && editorWidth > 0 && editorHeight > 0) {
                 audioProcessorEditor->setSize(editorWidth, editorHeight);
             }
+            
+            // Reinit midiDevice
+            String midiDeviceInputName = xmlState->getStringAttribute("MidiDeviceInputName");
+            String midiDeviceOutputName = xmlState->getStringAttribute("MidiDeviceOutputName");
+            if (midiDeviceInputName.length() > 0 && midiDeviceOutputName.length() > 0) {
+                midiDeviceNumber = midiDevice->openDevice(midiDeviceNumber, midiDeviceInputName, midiDeviceOutputName);
+            }
 
             // Different for Ambika and Shurthi
             setStateParamSpecific(xmlState);
@@ -307,20 +320,8 @@ void AudioProcessorCommon::setStateInformation(const void* data, int sizeInBytes
 				parameterUpdatedForUI(p);
 			}
 
-			// Start Flushing NRPN
-            for (int s = 0; s < 16; s++) {
-                if (xmlState->hasAttribute("SequencerStep" + String(s))) {
-                    int stepValue = xmlState->getIntAttribute("SequencerStep" + String(s));
-                    miSteps[s * 2] = stepValue >> 8;
-                    miSteps[s * 2 + 1] = stepValue & 0xff;
-                }
-            }
-
-            if (shruthiSequencer != nullptr) {
-                shruthiSequencer->setSequencerSteps(miSteps);
-            }
-            sendSysexPatch();
-		}
+            sendPatchToSynth();
+        }
 	}
 }
 
@@ -450,7 +451,12 @@ void AudioProcessorCommon::onParameterUpdated(AudioProcessorParameter *parameter
 }
 
 void AudioProcessorCommon::flushMidiOut() {
-	midiDevice->sendBlockOfMessagesNow(midiOutBuffer, getSynthName());
+    if (!midiDevice->sendBlockOfMessagesNow(midiDeviceNumber, midiOutBuffer)) {
+        if (askForMidiDevice) {
+            askForMidiDevice = false;
+            choseNewMidiDevice();
+        }
+    }
 	midiOutBuffer.clear();
 }
 
@@ -459,18 +465,8 @@ void AudioProcessorCommon::setPresetName(String newName) {
 }
 
 
-void AudioProcessorCommon::requestSequencerTransfer() {
-    char command[] = { 0x00, 0x21, 0x02, 0x00, 0xff, 0x12, 0x00, 0x00, 0x00 };
-    command[4] = sysexMachineCode();
-    if (needsPart()) {
-        command[6] = currentPart;
-    }
-    canReceiveSysexSequencer = true;
-    sendSysex(MidiMessage::createSysExMessage(command, 9));
-}
 
-
-void AudioProcessorCommon::sendSysexPatch() {
+void AudioProcessorCommon::sendPatchToSynth() {
 
     // SEND SYSEX
     DBG(" SEND SYSEX --------------------------");
@@ -504,40 +500,6 @@ void AudioProcessorCommon::sendSysexPatch() {
 }
 
 
-
-void AudioProcessorCommon::sendSequencer(uint8 steps[32]) {
-    for (int s = 0; s < 32; s++) {
-        miSteps[s] = steps[s];
-    }
-    sendSequencerToSynth();
-    // SEND SYSEX
-    DBG(" SEND SYSEX --------------------------");
-    uint8 message[128];
-    uint8 startSysex[7] = { 0x00, 0x21, 0x02, // (Manufacturer ID for Mutable Instruments)
-           0x00,  0x02, // (Product ID for Shruthi)
-           0x02, // Command to send sequencer
-           0x00 // // No argument
-    };
-    memcpy(message, startSysex, 7);
-    int index = 7;
-    int checkSum = 0;
-    for (int s = 0; s < 16; s++) {
-        uint8 data1 = steps[s * 2];
-        uint8 data2 = steps[s * 2 + 1];
-
-        message[index++] = data1 >> 4;
-        message[index++] = data1 & 0xf;
-        message[index++] = data2 >> 4;
-        message[index++] = data2 & 0xf;
-        checkSum = (checkSum + data1 + data2) % 256;
-
-        DBG(" SEND SYSEX : s " << s << " data 1 : " << data1 << " data 2 " << data2);
-    }
-    message[index++] = checkSum >> 4;
-    message[index++] = checkSum & 0xf;
-
-    sendSysex(MidiMessage::createSysExMessage(message, index));
-}
 
 void AudioProcessorCommon::sendSysex(const MidiMessage& sysexMessage) {
     midiOutBuffer.addEvent(sysexMessage, 8);
@@ -609,18 +571,10 @@ void AudioProcessorCommon::handleIncomingMidiMessage(MidiInput *source, const Mi
 
         switch (command) {
         case 1:
-            DBG("YEAH NEW PATCH !!!");
-            if (canReceiveSysexPatch) {
-                DBG("YEAH NEW PATCH can receive it !!");
-                decodeSysexPatch(message + 7);
-                canReceiveSysexPatch = false;
-            }
+            decodeSysexPatch(message + 7);
             break;
         case 2: {
-            if (canReceiveSysexSequencer) {
-                decodeSysexSequencer(message + 7);
-                canReceiveSysexSequencer = false;
-            }
+            decodeSysexSequencer(message + 7);
             break;
         }
         case 4: {
@@ -659,7 +613,7 @@ void AudioProcessorCommon::handlePartialSysexMessage(MidiInput *source, const ui
 
 
 void AudioProcessorCommon::setMISequencer(MISequencer* shruthiSeq) {
-    this->shruthiSequencer = shruthiSeq;
+    this->sequencerUI = shruthiSeq;
 }
 
 
@@ -667,7 +621,9 @@ void AudioProcessorCommon::redrawUI() {
     
     MessageManager::callAsync(
         [=]() {
-        audioProcessorEditor->setPresetName(presetName);
+        if (audioProcessorEditor != nullptr) {
+            audioProcessorEditor->setPresetName(presetName);
+        }
     });
 
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
@@ -677,10 +633,9 @@ void AudioProcessorCommon::redrawUI() {
 }
 
 void AudioProcessorCommon::pushButtonPressed() {
-    sendSysexPatch();
+    sendPatchToSynth();
 }
 
 void AudioProcessorCommon::pullButtonPressed() {
-    canReceiveSysexPatch = true;
     requestPatchTransfer();
 }

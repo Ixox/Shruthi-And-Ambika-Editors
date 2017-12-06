@@ -18,205 +18,302 @@
 
 #include "MidiDevice.h"
 
-#define MIDI_INPUT "midiInput"
-#define MIDI_OUTPUT "midiOutput"
-#define MIDI_FOR_PART "midiForPart"
+#define MIDI_LAST_INPUT_PROP "midiInput"
+#define MIDI_LAST_OUTPUT_PROP "midiOutput"
+#define MIDI_LAST_FOR_PART_PROP "midiForPart"
 
-MidiDevice::MidiDevice() {
-    String pfm2InputDevice = "##NONE";
-    String pfm2OutputDevice = "##NONE";
+#define NOT_FOUND -1
+#define ERROR_INCORECT_CHOICE -2
+#define ERROR_OPENING -3
 
-	PropertiesFile::Options options;
+
+//This can be called to suggest a file that should be used, based on the values in this structure.
+//So on a Mac, this will return a file called : ~/ Library / [osxLibrarySubFolder] / [folderName] / [applicationName].[filenameSuffix]
+//On Windows it'll return something like: C:\Documents and Settings\username\Application Data\[folderName]\[applicationName].[filenameSuffix]
+//On Linux it'll return ~/[folderName]/[applicationName].[filenameSuffix]
+//If the folderName variable is empty, it'll use the app name for this (or omit the folder name on the Mac).
+//The paths will also vary depending on whether commonToAllUsers is true.
+
+MidiDevice::MidiDevice()
+{
+    for (int d = 0; d < NUMBER_OF_DEVICES; d++) {
+        devices[d].numberOfUsage = 0;
+        devices[d].deviceNameInput = ""; 
+        devices[d].deviceNameOutput = "";
+        for (int p = 0; p < 6; p++) {
+            devices[d].midiChannelForPart[p] = p + 1;
+            devices[d].partUsed[p] = false;
+        }
+    }
+    lastUsedDevice = -1;
 #ifdef AMBIKA
-	options.applicationName = "ambikaEditor";
+    synthName = "Ambika";
 #endif
 #ifdef SHRUTHI
-    options.applicationName = "shruthiEditor";
+    synthName = "Shruthi";
 #endif
 
-options.osxLibrarySubFolder = "Application Support/Ixox";
-	options.filenameSuffix = ".settings";
-	options.storageFormat = PropertiesFile::StorageFormat::storeAsXML;
-	pfm2AppProps.setStorageParameters(options);
+    PropertiesFile::Options options;
+    options.applicationName = synthName + "Editor";
+    options.osxLibrarySubFolder = "Application Support";
+    options.folderName = "Ixox";
+    options.filenameSuffix = ".settings";
+    options.storageFormat = PropertiesFile::StorageFormat::storeAsXML;
+    appProperties.setStorageParameters(options);
 
-	PropertiesFile* pfm2Settings = pfm2AppProps.getCommonSettings(true);
 
-	if (pfm2Settings->containsKey(MIDI_INPUT)) {
-		pfm2InputDevice = pfm2Settings->getValue(MIDI_INPUT);
-	}
-
-	if (pfm2Settings->containsKey(MIDI_OUTPUT)) {
-		pfm2OutputDevice = pfm2Settings->getValue(MIDI_OUTPUT);
-	}
-
-	pfm2MidiOutput = nullptr;
-	pfm2MidiInput = nullptr;
-
-	StringArray devices = MidiOutput::getDevices();
-
-	for (int d = 0; d < devices.size(); d++) {
-		DBG("Output : " << devices[d]);
-		if (devices[d] == pfm2OutputDevice) {
-			if ((pfm2MidiOutput = MidiOutput::openDevice(d)) != nullptr) {
-				DBG("Output found :)");
-				currentMidiOutputDevice = devices[d];
-			}
-			break;
-		}
-	}
-
-	devices = MidiInput::getDevices();
-	for (int d = 0; d < devices.size(); d++) {
-		DBG("Input : " << devices[d]);
-		if (devices[d] == pfm2InputDevice) {
-			if ((pfm2MidiInput = MidiInput::openDevice(d, this)) != nullptr) {
-				pfm2MidiInput->start();
-				currentMidiInputDevice = devices[d];
-				DBG("Input found :)");
-			}
-			break;
-		}
-	}
-
-    for (int p = 0; p < 6; p++) {
-        if (pfm2Settings->containsKey(MIDI_FOR_PART + String(p))) {
-            midiChannelForPart[p] = pfm2Settings->getIntValue(MIDI_FOR_PART + String(p));
-        }
-        else {
-            midiChannelForPart[p] = p + 1;
+    defaultDeviceNumber = -1;
+    PropertiesFile* propertiesFile = appProperties.getCommonSettings(true);
+    String fileName = propertiesFile->getFile().getFullPathName();
+    DBG("PROPERTIES FULL PATH NAME : " + fileName);
+    if (propertiesFile->containsKey(MIDI_LAST_INPUT_PROP) && propertiesFile->containsKey(MIDI_LAST_OUTPUT_PROP)) {
+        String inputProp = propertiesFile->getValue(MIDI_LAST_INPUT_PROP);
+        String outputProp = propertiesFile->getValue(MIDI_LAST_OUTPUT_PROP);
+        if (inputProp.length() > 0 && outputProp.length() > 0) {
+            defaultDeviceNumber = openDevice(-1, propertiesFile->getValue(MIDI_LAST_INPUT_PROP), propertiesFile->getValue(MIDI_LAST_OUTPUT_PROP));
+            if (defaultDeviceNumber >= 0) {
+                for (int p = 0; p < 6; p++) {
+                    if (propertiesFile->containsKey(MIDI_LAST_FOR_PART_PROP + String(p))) {
+                        devices[defaultDeviceNumber].midiChannelForPart[p] = propertiesFile->getIntValue(MIDI_LAST_FOR_PART_PROP + String(p));
+                    }
+                }
+            }
         }
     }
 }
 
+
+void MidiDevice::saveLastChosenDevice() {
+
+	PropertiesFile* propertiesFile = appProperties.getCommonSettings(true);
+    propertiesFile->setValue(MIDI_LAST_INPUT_PROP, devices[lastUsedDevice].deviceNameInput);
+    propertiesFile->setValue(MIDI_LAST_OUTPUT_PROP, devices[lastUsedDevice].deviceNameOutput);
+    appProperties.saveIfNeeded();
+
+
+}
+
 MidiDevice::~MidiDevice() {
-	resetDevices();
-}
-
-void MidiDevice::resetDevices() {
-
-	if (pfm2MidiInput) {
-		pfm2MidiInput->stop();
-		delete pfm2MidiInput;
-		pfm2MidiInput = nullptr;
-	}
-	if (pfm2MidiOutput) {
-		delete pfm2MidiOutput;
-		pfm2MidiOutput = nullptr;
-	}
+    closeAllDevices();
 }
 
 
-void MidiDevice::sendBlockOfMessagesNow(MidiBuffer& midiBuffer, String synthName) {
-	if (pfm2MidiOutput != nullptr && pfm2MidiInput != nullptr) {
-		pfm2MidiOutput->sendBlockOfMessagesNow(midiBuffer);
-	}
-	else {
-		choseNewDevices(synthName);
-	}
+int MidiDevice::getDeviceNumber(String deviceNameInput, String deviceNameOutput) {
+    if (deviceNameInput == "" || deviceNameOutput == "") {
+        return ERROR_INCORECT_CHOICE;
+    }
+    for (int d = 0; d < NUMBER_OF_DEVICES; d++) {
+        if ((devices[d].deviceNameInput == deviceNameInput && devices[d].deviceNameOutput != deviceNameOutput) 
+            || (devices[d].deviceNameInput != deviceNameInput && devices[d].deviceNameOutput == deviceNameOutput)) {
+            // Error
+            return ERROR_INCORECT_CHOICE;
+        }
+
+        if (devices[d].deviceNameInput == deviceNameInput && devices[d].deviceNameOutput == deviceNameOutput) {
+            return d;
+        }
+    }
+    // Does not exist
+    return NOT_FOUND;
 }
 
 
-int MidiDevice::forceChoseNewDevices(String synthName) {
-	showErrorMEssage = true;
-	return choseNewDevices(synthName);
+int MidiDevice::openDevice(int deviceNumber, String deviceNameInput, String deviceNameOutput) {
+    MidiInput* midiInput = nullptr;
+    MidiOutput* midiOutput = nullptr;
+
+    // Check if device already exists or if only one of input/output is selected
+    int newDeviceNumber = getDeviceNumber(deviceNameInput, deviceNameOutput);
+    if (newDeviceNumber == ERROR_INCORECT_CHOICE) {
+        return ERROR_INCORECT_CHOICE;
+    }
+
+
+    // Already exists
+    if (newDeviceNumber != NOT_FOUND) {
+        if (newDeviceNumber != deviceNumber) {
+            if (deviceNumber != -1) {
+                closeDevice(deviceNumber, false);
+            }
+            devices[newDeviceNumber].numberOfUsage++;
+        }
+        return newDeviceNumber;
+    }
+
+
+    StringArray outputDevices = MidiOutput::getDevices();
+    for (int d = 0; d < outputDevices.size(); d++) {
+        DBG("Output : " << outputDevices[d]);
+        if (outputDevices[d] == deviceNameOutput) {
+            if ((midiOutput = MidiOutput::openDevice(d)) != nullptr) {
+                DBG("Output found :)");
+            }
+            break;
+        }
+    }
+
+    if (midiOutput != nullptr) {
+        StringArray inputDevices = MidiInput::getDevices();
+        for (int d = 0; d < inputDevices.size(); d++) {
+            DBG("Input : " << inputDevices[d]);
+            if (inputDevices[d] == deviceNameInput) {
+                if ((midiInput = MidiInput::openDevice(d, this)) != nullptr) {
+                    midiInput->start();
+                    DBG("Input found :)");
+                }
+                break;
+            }
+        }
+
+        if (midiInput == nullptr) {
+            delete midiOutput;
+            return ERROR_OPENING;
+        }
+    }
+    else {
+        return ERROR_OPENING;
+    }
+
+    // All Devices are busy ?
+    int toReturn = ERROR_OPENING;
+
+    for (int d = 0; d < NUMBER_OF_DEVICES; d++) {
+        if (devices[d].numberOfUsage == 0) {
+            devices[d].numberOfUsage = 1;
+            devices[d].deviceNameInput = deviceNameInput;
+            devices[d].deviceNameOutput = deviceNameOutput;
+            devices[d].midiInput = midiInput;
+            devices[d].midiOutput = midiOutput;
+            toReturn = d;
+            break;
+        }
+    }
+
+    // Let's close old device
+    if (deviceNumber != -1) {
+        closeDevice(deviceNumber, false);
+    }
+
+
+    return toReturn;
 }
 
-int MidiDevice::choseNewDevices(String synthName) {
+void MidiDevice::closeDevice(int deviceNumber, bool force) {
+    devices[deviceNumber].numberOfUsage--;
+    if (devices[deviceNumber].numberOfUsage == 0
+        || (force && devices[deviceNumber].numberOfUsage >=0)) {
+        devices[deviceNumber].numberOfUsage = 0;
+        if (devices[deviceNumber].midiInput != nullptr) {
+            devices[deviceNumber].midiInput->stop();
+            delete devices[deviceNumber].midiInput;
+            devices[deviceNumber].midiInput = nullptr;
+        }
+        if (devices[deviceNumber].midiOutput != nullptr) {
+            delete devices[deviceNumber].midiOutput;
+            devices[deviceNumber].midiOutput = nullptr;
+        }
+        devices[deviceNumber].deviceNameInput = "";
+        devices[deviceNumber].deviceNameOutput = "";
+    }
+}
+
+void MidiDevice::closeAllDevices() {
+    for (int d = 0; d < NUMBER_OF_DEVICES; d++) {
+        closeDevice(d, true);
+    }
+}
+
+
+
+
+//int MidiDevice::forceChoseNewDevices(String synthName) {
+//	showErrorMEssage = true;
+//	return choseNewDevices(synthName);
+//}
+
+int MidiDevice::openChoseDeviceWindow(int deviceNumber) {
 	const ScopedTryLock myScopedTryLock(messageLock);
     int result = 0;
+
+    // use lastUsedDevice if no current device
+    deviceNumber = deviceNumber == -1 ? lastUsedDevice : deviceNumber;
 
 	if (!myScopedTryLock.isLocked()) {
 		return result;
 	}
 
-    if (showErrorMEssage) {
-		showErrorMEssage = false;
+	AlertWindow midiWindow("Where is your " + synthName +" ?",
+		"",
+		AlertWindow::QuestionIcon);
 
-		AlertWindow midiWindow("Where is your " + synthName +" ?",
-			"",
-			AlertWindow::QuestionIcon);
+	Label errorMessage("");
+	errorMessage.setColour(Label::textColourId, Colour::fromRGB(200, 80, 80));
+	errorMessage.setSize(400, 20);
+	midiWindow.addCustomComponent(&errorMessage);
 
-		Label errorMessage("");
-		errorMessage.setColour(Label::textColourId, Colour::fromRGB(200, 80, 80));
-		errorMessage.setSize(400, 20);
-		midiWindow.addCustomComponent(&errorMessage);
+	StringArray inputDevices = MidiInput::getDevices();
+    inputDevices.insert(0, "<Select>");
+	midiWindow.addComboBox("From", inputDevices, "Input from your "+ synthName);
+    if (deviceNumber != -1) {
+        int currentInput = inputDevices.indexOf(devices[deviceNumber].deviceNameInput);
+        if (currentInput > -1) {
+            midiWindow.getComboBoxComponent("From")->setSelectedId(currentInput + 1);
+        }
+    }
 
-		StringArray devicesFrom = MidiInput::getDevices();
-		devicesFrom.insert(0, "<Select>");
-		midiWindow.addComboBox("From", devicesFrom, "Input from your "+ synthName);
-		int currentInput = devicesFrom.indexOf(currentMidiInputDevice);
-		if (currentInput > -1) {
-			midiWindow.getComboBoxComponent("From")->setSelectedId(currentInput + 1);
-		}
+	StringArray outputDevices = MidiOutput::getDevices();
+    outputDevices.insert(0, "<Select>");
+	midiWindow.addComboBox("To", outputDevices, "Output to your "+ synthName);
+    if (deviceNumber != -1) {
+        int currentOutput = outputDevices.indexOf(devices[deviceNumber].deviceNameOutput);
+        if (currentOutput > -1) {
+            midiWindow.getComboBoxComponent("To")->setSelectedId(currentOutput + 1);
+        }
+    }
 
-		StringArray devicesTo = MidiOutput::getDevices();
-		devicesTo.insert(0, "<Select>");
-		midiWindow.addComboBox("To", devicesTo, "Output to your "+ synthName);
-		int currentOutput = devicesTo.indexOf(currentMidiOutputDevice);
-		if (currentOutput > -1) {
-			midiWindow.getComboBoxComponent("To")->setSelectedId(currentOutput + 1);
-		}
 #ifdef AMBIKA
-        midiWindow.addTextBlock("Clicking OK will also update your part/midi association.");
+    midiWindow.addTextBlock("Clicking OK will also retrieve the Ambika multi data information.");
 #endif
-		//void addButton(const String &name, int returnValue, const KeyPress &shortcutKey1 = KeyPress(), const KeyPress &shortcutKey2 = KeyPress())
-		midiWindow.addButton("Cancel", 0);
-		midiWindow.addButton("OK", 1);
 
-		result = 1;
+	//void addButton(const String &name, int returnValue, const KeyPress &shortcutKey1 = KeyPress(), const KeyPress &shortcutKey2 = KeyPress())
+	midiWindow.addButton("Cancel", 0);
+	midiWindow.addButton("OK", 1);
+
+	result = 1;
+    int newDeviceNumber = deviceNumber;
+    do {
 		do {
+			result = midiWindow.runModalLoop();
+			errorMessage.setText("You must select both input and output", NotificationType::sendNotification);
+			midiWindow.repaint();
+		} while ((midiWindow.getComboBoxComponent("From")->getSelectedId() == 1 || midiWindow.getComboBoxComponent("To")->getSelectedId() == 1) && result == 1);
 
-			do {
-				result = midiWindow.runModalLoop();
-				errorMessage.setText("You must select both input and output", NotificationType::sendNotification);
-				midiWindow.repaint();
-			} while ((midiWindow.getComboBoxComponent("From")->getSelectedId() == 1 || midiWindow.getComboBoxComponent("To")->getSelectedId() == 1) && result == 1);
+        if (result == 1) {
 
-			if (result == 1) {
+            // -2 because of the <Select>.
+            int deviceFrom = midiWindow.getComboBoxComponent("From")->getSelectedId() - 2;
+            String midiInputDevice = inputDevices[deviceFrom + 1];
+            int deviceTo = midiWindow.getComboBoxComponent("To")->getSelectedId() - 2;
+            String midiOutputDevice = outputDevices[deviceTo + 1];
 
-				if (pfm2MidiOutput != nullptr) {
-					delete pfm2MidiOutput;
-					pfm2MidiOutput = nullptr;
-				}
-				if (pfm2MidiInput != nullptr) {
-					pfm2MidiInput->stop();
-					delete pfm2MidiInput;
-					pfm2MidiInput = nullptr;
-				}
+            newDeviceNumber = openDevice(deviceNumber, midiInputDevice, midiOutputDevice);
 
-				// -2 because of the <Select>.
-				int deviceFrom = midiWindow.getComboBoxComponent("From")->getSelectedId() - 2;
-				currentMidiInputDevice = devicesFrom[deviceFrom + 1];
-				int deviceTo = midiWindow.getComboBoxComponent("To")->getSelectedId() - 2;
-				currentMidiOutputDevice = devicesTo[deviceTo + 1];
+            if (newDeviceNumber == ERROR_INCORECT_CHOICE) {
+                errorMessage.setText("Cannot use this Input/output Pair. Check the other devices you chose.", NotificationType::sendNotification);
+                midiWindow.repaint();
+            } 
+            else if (newDeviceNumber == ERROR_OPENING) {
+                errorMessage.setText("Error opening the midi devices.", NotificationType::sendNotification);
+                midiWindow.repaint();
+            }
+            else {
+                lastUsedDevice = newDeviceNumber;
+                saveLastChosenDevice();
+            }
+        }
+	} while (newDeviceNumber < 0 && result == 1);
 
-				pfm2MidiInput = MidiInput::openDevice(deviceFrom, this);
-				if (pfm2MidiInput != nullptr) {
-					pfm2MidiInput->start();
-				}
-				else {
-					errorMessage.setText("Input cannot be open", NotificationType::dontSendNotification);
-				}
-				// No need to test output if input did not work
-				if (pfm2MidiInput != nullptr) {
-					pfm2MidiOutput = MidiOutput::openDevice(deviceTo);
-					if (pfm2MidiOutput == nullptr) {
-						errorMessage.setText("Output cannot be open", NotificationType::dontSendNotification);
-						// let's close input before rexiting
-						resetDevices();
-					}
-					else {
-						// We're good
-						PropertiesFile* pfm2Settings = pfm2AppProps.getCommonSettings(true);
-						pfm2Settings->setValue(MIDI_INPUT, currentMidiInputDevice);
-						pfm2Settings->setValue(MIDI_OUTPUT, currentMidiOutputDevice);
-						pfm2AppProps.saveIfNeeded();
-					}
-				}
-			}
-		} while ((pfm2MidiInput == nullptr || pfm2MidiOutput == nullptr) && result == 1);
-	}
-    return result;
+    return result == 0 ? -1 : newDeviceNumber;
 }
 
 void MidiDevice::addListener(MidiInputCallback *listener) {
@@ -245,23 +342,44 @@ void MidiDevice::handlePartialSysexMessage(MidiInput *source, const uint8 *messa
 
 }
 
+MidiOutput* MidiDevice::getMidiOutput(int deviceNumber) {
+    if (deviceNumber != -1) {
+        return devices[deviceNumber].midiOutput;
+    }
+}
+ 
+MidiInput* MidiDevice::getMidiInput(int deviceNumber) {
+    if (deviceNumber != -1) {
+        return devices[deviceNumber].midiInput;
+    }
+}
 
-void MidiDevice::setMidiChannelForPart(int a[6]) {
-    PropertiesFile* pfm2Settings = pfm2AppProps.getCommonSettings(true);
+void MidiDevice::setMidiChannelForPart(int deviceNumber, int a[6]) {
+    PropertiesFile* propertiesFile = appProperties.getCommonSettings(true);
     for (int p = 0; p < 6; p++) {
-        if (midiChannelForPart[p] != a[p]) {
-            midiChannelForPart[p] = a[p];
-            pfm2Settings->setValue(MIDI_FOR_PART + String(p), midiChannelForPart[p]);
+        if (devices[deviceNumber].midiChannelForPart[p] != a[p]) {
+            devices[deviceNumber].midiChannelForPart[p] = a[p];
+            propertiesFile->setValue(MIDI_LAST_FOR_PART_PROP + String(p), devices[deviceNumber].midiChannelForPart[p]);
         }
     }
-    pfm2AppProps.saveIfNeeded();
+    appProperties.saveIfNeeded();
 }
 
-int* MidiDevice::getMidiChannelForPart() {
-    return midiChannelForPart;
+int* MidiDevice::getMidiChannelForPart(int deviceNumber) {
+    return devices[deviceNumber].midiChannelForPart;
 }
 
 
+
+bool MidiDevice::sendBlockOfMessagesNow(int deviceNumber, MidiBuffer& midiBuffer) {
+    if (deviceNumber >=0 && devices[deviceNumber].midiOutput != nullptr && devices[deviceNumber].midiInput != nullptr) {
+        devices[deviceNumber].midiOutput->sendBlockOfMessagesNow(midiBuffer);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 
 
 

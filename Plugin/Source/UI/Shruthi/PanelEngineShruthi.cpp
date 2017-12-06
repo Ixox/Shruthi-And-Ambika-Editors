@@ -43,7 +43,7 @@
 
 //[/Headers]
 
-#include "PanelEngine.h"
+#include "PanelEngineShruthi.h"
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
@@ -60,6 +60,15 @@ const char* oscSubClicks[] = {
 const char* modulationOperators[] = {
     "Sum", "Sync", "Ring", "xor", "Fuzz", ">> 4", ">> 8", "Fold", "Bits", "Duo", "2 Steps", "4 Steps", "8 Steps", "Seqmix", nullptr
 };
+
+const char* fourpmModeTexts[] = {
+    "LP 4-pole", "LP 3-pole", "LP 2-pole", "LP 1-pole", "HP 1-pole",  "HP 2-pole", "HP 3-pole", "BP 2-pole", "BP 4-pole",
+    "Notch", "Phase", "HP2 & LP1", "HP3 & LP1", "Notch & LP1", "All & LP1", nullptr
+};
+const char* fourpmFlavorTexts[] = {
+    "Liquid", "MS Korg-35", "Wobbly", "Whacky", nullptr
+};
+
 
 const char* svgMode1[] = { "Low pass", "Band pass", "High pass", "Low pass <", "Band pass <", "High pass <", nullptr };
 const char* svgMode2[] = { "+ Low pass", "+ Band pass", "+ High pass", "> Low pass", "> Band pass", "> High pass", nullptr };
@@ -379,6 +388,33 @@ PanelEngine::PanelEngine ()
     filterSVFMode2->setSelectedId(1);
     filterSVFMode2->addListener(this);
 
+    // 4PM Filter
+    addAndMakeVisible(filter4PMModeLabel= new Label("Filter4PM Mode", "Mode (4PM)"));
+    filter4PMModeLabel->setJustificationType(Justification::centred);
+    addAndMakeVisible(filter4PMFlavorLabel= new Label("Filter4PM Flavor", "Flavor (4PM)"));
+    filter4PMFlavorLabel->setJustificationType(Justification::centred);
+
+    addAndMakeVisible(filter4PMMode = new ComboBox("Filter4PM Mode"));
+    filter4PMMode->setEditableText(false);
+    filter4PMMode->setJustificationType(Justification::left);
+    filter4PMMode->setColour(ComboBox::buttonColourId, Colours::blue);
+    for (int i = 0; fourpmModeTexts[i] != nullptr; i++) {
+        filter4PMMode->addItem(fourpmModeTexts[i], i + 1);
+    }
+    filter4PMMode->setScrollWheelEnabled(true);
+    filter4PMMode->setSelectedId(1);
+    filter4PMMode->addListener(this);
+
+    addAndMakeVisible(filter4PMFlavor= new ComboBox("Filter4PM Flavor"));
+    filter4PMFlavor->setEditableText(false);
+    filter4PMFlavor->setJustificationType(Justification::left);
+    filter4PMFlavor->setColour(ComboBox::buttonColourId, Colours::blue);
+    for (int i = 0; fourpmFlavorTexts[i] != nullptr; i++) {
+        filter4PMFlavor->addItem(fourpmFlavorTexts[i], i + 1);
+    }
+    filter4PMFlavor->setScrollWheelEnabled(true);
+    filter4PMFlavor->setSelectedId(1);
+    filter4PMFlavor->addListener(this);
 
 
     // Legato 0 - 1 : 68
@@ -407,11 +443,10 @@ PanelEngine::PanelEngine ()
 
 
     //[Constructor] You can add your own custom stuff here..
+    settingsListener = nullptr;
     shruthiFilterButtons[0]->setToggleState(true, sendNotification);
-    currentFilterType = 0;
-
+    currentFilterType = FILTER_SMR4;
     // only SMR4 and SVF for the moment
-    shruthiFilterButtons[2]->setEnabled(false);
     shruthiFilterButtons[3]->setEnabled(false);
     //[/Constructor]
 }
@@ -481,14 +516,14 @@ void PanelEngine::resized()
     if (false) {
     //[/UserPreResize]
 
-    osc1Group->setBounds (proportionOfWidth (0.0336f), proportionOfHeight (0.0948f), proportionOfWidth (0.4503f), proportionOfHeight (0.2505f));
-    osc2Group->setBounds (proportionOfWidth (0.5161f), proportionOfHeight (0.0948f), proportionOfWidth (0.4503f), proportionOfHeight (0.2505f));
-    mixerGroup->setBounds (proportionOfWidth (0.2858f), proportionOfHeight (0.3922f), proportionOfWidth (0.4010f), proportionOfHeight (0.2266f));
-    filterGroup->setBounds (proportionOfWidth (0.1645f), proportionOfHeight (0.6623f), proportionOfWidth (0.6689f), proportionOfHeight (0.2604f));
-    filterTypeGroup->setBounds (proportionOfWidth (0.2522f), proportionOfHeight (0.0000f), proportionOfWidth (0.4709f), proportionOfHeight (0.0708f));
-    infoButton->setBounds (proportionOfWidth (0.0932f), proportionOfHeight (0.4444f), proportionOfWidth (0.0713f), proportionOfHeight (0.1133f));
-    tuningGroup->setBounds (proportionOfWidth (0.0219f), proportionOfHeight (0.3922f), proportionOfWidth (0.2522f), proportionOfHeight (0.2266f));
-    infoGroup->setBounds (proportionOfWidth (0.7073f), proportionOfHeight (0.3922f), proportionOfWidth (0.2522f), proportionOfHeight (0.2266f));
+    osc1Group->setBounds (proportionOfWidth (0.0333f), proportionOfHeight (0.0948f), proportionOfWidth (0.4501f), proportionOfHeight (0.2505f));
+    osc2Group->setBounds (proportionOfWidth (0.5159f), proportionOfHeight (0.0948f), proportionOfWidth (0.4501f), proportionOfHeight (0.2505f));
+    mixerGroup->setBounds (proportionOfWidth (0.2859f), proportionOfHeight (0.3922f), proportionOfWidth (0.4013f), proportionOfHeight (0.2266f));
+    filterGroup->setBounds (proportionOfWidth (0.1642f), proportionOfHeight (0.6623f), proportionOfWidth (0.6688f), proportionOfHeight (0.2604f));
+    filterTypeGroup->setBounds (proportionOfWidth (0.2520f), proportionOfHeight (0.0000f), proportionOfWidth (0.4706f), proportionOfHeight (0.0708f));
+    infoButton->setBounds (proportionOfWidth (0.0934f), proportionOfHeight (0.4444f), proportionOfWidth (0.0715f), proportionOfHeight (0.1133f));
+    tuningGroup->setBounds (proportionOfWidth (0.0219f), proportionOfHeight (0.3922f), proportionOfWidth (0.2520f), proportionOfHeight (0.2266f));
+    infoGroup->setBounds (proportionOfWidth (0.7070f), proportionOfHeight (0.3922f), proportionOfWidth (0.2520f), proportionOfHeight (0.2266f));
     //[UserResized] Add your own custom resize handling here..
     }
 
@@ -515,12 +550,15 @@ void PanelEngine::resized()
     mixerGroup->setBounds(mixerBounds.removeFromRight(mixerBounds.getWidth() * 2 / 3).reduced(10 ,5));
     Rectangle<int> tuneGroup = mixerBounds.reduced(10, 5);
 
-    if (currentFilterType == 1) {
+    if (currentFilterType == FILTER_SVF) {
         filterGroup->setBounds(mainBounds.removeFromLeft(mainBounds.getWidth() * 5  / 8).reduced(10, 5));
         filterSVFGroup->setBounds(mainBounds.reduced(10, 5));
     }
-    else {
+    else if (currentFilterType == FILTER_SMR4) {
         filterGroup->setBounds(mainBounds.reduced(mainBounds.getWidth() / 4, 5).reduced(10, 5));
+    }
+    else if (currentFilterType == FILTER_4PM) {
+        filterGroup->setBounds(mainBounds.reduced(mainBounds.getWidth() / 6, 5).reduced(10, 5));
     }
 
     //osc1Group->setBounds(proportionOfWidth(0.0329f), proportionOfHeight(0.0959f), proportionOfWidth(0.4503f), proportionOfHeight(0.2505f));
@@ -607,8 +645,11 @@ void PanelEngine::resized()
     // FILTERS !!
 
     numberInRow = 4;
-    if (currentFilterType == 1) {
+    if (currentFilterType == FILTER_SVF) {
         numberInRow = 5;
+    }
+    else if (currentFilterType == FILTER_4PM) {
+        numberInRow = 6;
     }
 
     groupBounds = filterGroup->getBounds();
@@ -617,28 +658,39 @@ void PanelEngine::resized()
 
     filterCutoffLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
     filterResonnanceLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+    if (currentFilterType == FILTER_4PM) {
+        filter4PMModeLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+        filter4PMFlavorLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+    }
     filterEnvLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
     filterLfoLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
-    if (currentFilterType == 1) {
+    if (currentFilterType == FILTER_SVF) {
         filterSVFMode1Label->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
     }
     groupBounds.removeFromTop(10);
     numberInRow = 4;
-    if (currentFilterType == 1) {
+    if (currentFilterType == FILTER_SVF) {
         numberInRow = 5;
+    }
+    else if (currentFilterType == FILTER_4PM) {
+        numberInRow = 6;
     }
     filterCutoff->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, 0));
     filterResonnance->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, 0));
+    if (currentFilterType == FILTER_4PM) {
+        filter4PMMode->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, groupBounds.getHeight() / 2 - 10));
+        filter4PMFlavor->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, groupBounds.getHeight() / 2 - 10));
+    }
     filterEnv->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, 0));
     filterLfo->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, 0));
 
-    if (currentFilterType == 1) {
+    if (currentFilterType == FILTER_SVF) {
         filterSVFMode1->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, groupBounds.getHeight() / 2 - 10));
     }
 
 
     // SVF Filter
-    if (currentFilterType == 1) {
+    if (currentFilterType == FILTER_SVF) {
 
         numberInRow = 3;
         groupBounds = filterSVFGroup->getBounds();
@@ -655,10 +707,6 @@ void PanelEngine::resized()
         filterSVFResonnance->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, 0));
         filterSVFMode2->setBounds(groupBounds.removeFromLeft(groupBounds.getWidth() / numberInRow--).reduced(10, groupBounds.getHeight() / 2 - 10));
     }
-
-
-
-
     //[/UserResized]
 }
 
@@ -714,15 +762,22 @@ void PanelEngine::buttonClicked(Button* buttonThatWasClicked)
             if (currentFilterType != b) {
                 DBG("Shruti filter type changed : " << supportedFilters[b]);
                 currentFilterType = b;
-                filterSVFGroup->setVisible(b == 1);
-                filterSVFCutoff->setVisible(b == 1);
-                filterSVFCutoffLabel->setVisible(b == 1);
-                filterSVFResonnance->setVisible(b == 1);
-                filterSVFResonnanceLabel->setVisible(b == 1);
-                filterSVFMode1->setVisible(b == 1);
-                filterSVFMode1Label->setVisible(b == 1);
-                filterSVFMode2->setVisible(b == 1);
-                filterSVFMode2Label->setVisible(b == 1);
+                if (settingsListener != nullptr) {
+                    settingsListener->setFilterType(b);
+                }
+                filterSVFGroup->setVisible(b == FILTER_SVF);
+                filterSVFCutoff->setVisible(b == FILTER_SVF);
+                filterSVFCutoffLabel->setVisible(b == FILTER_SVF);
+                filterSVFResonnance->setVisible(b == FILTER_SVF);
+                filterSVFResonnanceLabel->setVisible(b == FILTER_SVF);
+                filterSVFMode1->setVisible(b == FILTER_SVF);
+                filterSVFMode1Label->setVisible(b == FILTER_SVF);
+                filterSVFMode2->setVisible(b == FILTER_SVF);
+                filterSVFMode2Label->setVisible(b == FILTER_SVF);
+                filter4PMModeLabel->setVisible(b == FILTER_4PM);
+                filter4PMFlavorLabel->setVisible(b == FILTER_4PM);
+                filter4PMMode->setVisible(b == FILTER_4PM);
+                filter4PMFlavor->setVisible(b == FILTER_4PM);
                 resized();
             }
         }
@@ -796,6 +851,8 @@ void PanelEngine::buildParameters() {
     updateComboFromParameter(filterSVFMode2);
     updateSliderFromParameter(tunePortamento);
     updateButtonFromParameter(tuneLegato);
+    updateComboFromParameter(filter4PMMode);
+    updateComboFromParameter(filter4PMFlavor);
 }
 
 void PanelEngine::updateUIEnveloppe(String paramName) {
@@ -824,6 +881,12 @@ void PanelEngine::sliderDragEnded(Slider* slider) {
     }
 }
 
+void PanelEngine::setFitlerType(int ft) {
+    if (ft >= 0 && ft < NUMBER_SUPPORTED_FILTERS) {
+        currentFilterType = ft;
+        shruthiFilterButtons[ft]->setToggleState(true, true);
+    }
+}
 
 
 //[/MiscUserCode]
@@ -839,7 +902,7 @@ void PanelEngine::sliderDragEnded(Slider* slider) {
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="PanelEngine" componentName=""
-                 parentClasses="public Component, public Slider::Listener, public Button::Listener, public ComboBox::Listener, public PanelOfComponents"
+                 parentClasses="public Component, public Slider::Listener, public Button::Listener, public ComboBox::Listener, public PanelOfComponents, public FilterTypeUI"
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="710">
@@ -850,32 +913,32 @@ BEGIN_JUCER_METADATA
           hasStroke="0"/>
   </BACKGROUND>
   <GROUPCOMPONENT name="Osc1 Group" id="f2a0395148710745" memberName="osc1Group"
-                  virtualName="" explicitFocusOrder="0" pos="3.358% 9.477% 45.031% 25.054%"
+                  virtualName="" explicitFocusOrder="0" pos="3.326% 9.477% 45.011% 25.054%"
                   title="Oscillator 1"/>
   <GROUPCOMPONENT name="Osc2 Group" id="c95a43b07e06b375" memberName="osc2Group"
-                  virtualName="" explicitFocusOrder="0" pos="51.611% 9.477% 45.031% 25.054%"
+                  virtualName="" explicitFocusOrder="0" pos="51.592% 9.477% 45.011% 25.054%"
                   title="Oscillator 2"/>
   <GROUPCOMPONENT name="Mixer Group" id="68ec52c66aafee91" memberName="mixerGroup"
-                  virtualName="" explicitFocusOrder="0" pos="28.581% 39.216% 40.096% 22.658%"
+                  virtualName="" explicitFocusOrder="0" pos="28.592% 39.216% 40.127% 22.658%"
                   title="Mixer"/>
   <GROUPCOMPONENT name="Filter Group" id="6e8f214af349f96d" memberName="filterGroup"
-                  virtualName="" explicitFocusOrder="0" pos="16.45% 66.231% 66.895% 26.035%"
+                  virtualName="" explicitFocusOrder="0" pos="16.419% 66.231% 66.879% 26.035%"
                   title="Filter"/>
   <GROUPCOMPONENT name="Filter type group" id="a6750fe53a709bc4" memberName="filterTypeGroup"
-                  virtualName="" explicitFocusOrder="0" pos="25.223% 0% 47.087% 7.081%"
+                  virtualName="" explicitFocusOrder="0" pos="25.195% 0% 47.063% 7.081%"
                   title="Shruthi filter type" textpos="33"/>
   <IMAGEBUTTON name="Info Button" id="bd0f020830de2111" memberName="infoButton"
-               virtualName="" explicitFocusOrder="0" pos="9.321% 44.444% 7.128% 11.329%"
+               virtualName="" explicitFocusOrder="0" pos="9.342% 44.444% 7.148% 11.329%"
                tooltip="Some Info" buttonText="" connectedEdges="0" needsCallback="0"
                radioGroupId="0" keepProportions="1" resourceNormal="BinaryData::iconInfo_png"
                opacityNormal="0.85760861635208129883" colourNormal="50000000"
                resourceOver="" opacityOver="1" colourOver="50000000" resourceDown=""
                opacityDown="1" colourDown="0"/>
   <GROUPCOMPONENT name="Tuning Group" id="26235bda1e7cecac" memberName="tuningGroup"
-                  virtualName="" explicitFocusOrder="0" pos="2.193% 39.216% 25.223% 22.658%"
+                  virtualName="" explicitFocusOrder="0" pos="2.194% 39.216% 25.195% 22.658%"
                   title="Tuning"/>
   <GROUPCOMPONENT name="Info Group" id="a34cf8d753760e42" memberName="infoGroup"
-                  virtualName="" explicitFocusOrder="0" pos="70.733% 39.216% 25.223% 22.658%"
+                  virtualName="" explicitFocusOrder="0" pos="70.701% 39.216% 25.195% 22.658%"
                   title="Info"/>
 </JUCER_COMPONENT>
 

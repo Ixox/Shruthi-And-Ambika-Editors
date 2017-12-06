@@ -267,8 +267,8 @@ PanelSequencer::PanelSequencer ()
     for (int s = 0; s < NUMBER_OF_STEPS; s++) {
         int note = s * 2 + 36;
         seqNoteOctave[s]->setSelectedId((int)(note / 12) - 2);
-        seqNotes[s].note  = 0x80 + 38 + s * 2;
-        seqNotes[s].velocity = s * 10 + 50;
+        sequencer.seqNotes[s].data1  = 0x80 + 38 + s * 2;
+        sequencer.seqNotes[s].data2 = s * 10 + 50;
     }
 
     //[/Constructor]
@@ -278,7 +278,7 @@ PanelSequencer::~PanelSequencer()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
     updateSequencerSteps();
-    canSendSequencer->sendSequencer((uint8*)seqNotes);
+    canSendSequencer->sendSequencerToSynth((uint8*)&sequencer);
     //[/Destructor_pre]
 
     arpGroup = nullptr;
@@ -479,7 +479,7 @@ void PanelSequencer::buttonClicked(Button *buttonThatWasClicked) {
         repaint();
         updateSequencerSteps();
         if (canSendSequencer != nullptr) {
-            canSendSequencer->sendSequencer((uint8*)seqNotes);
+            canSendSequencer->sendSequencerToSynth((uint8*)&sequencer);
         }
     }
 }
@@ -517,53 +517,48 @@ void PanelSequencer::buildParameters() {
 
 
 // Copy own sequencer value so that PluginProcessor can store it
-uint8* PanelSequencer::getSequencerSteps() {
+uint8* PanelSequencer::getSequencerData() {
     updateSequencerSteps();
-    return (uint8*)seqNotes;
+    return (uint8*)&sequencer;
 }
 
 void PanelSequencer::updateSequencerSteps() {
     for (int s = 0; s < 16; s++) {
-        uint8 data1 = 0;
-        uint8 data2 = 0;
-        data1 = seqScore->getNote(s) + (seqNoteOctave[s]->getSelectedId() + 1) * 12;
+        sequencer.seqNotes[s].data1 = seqScore->getNote(s) + (seqNoteOctave[s]->getSelectedId() + 1) * 12;
         if (seqRhythmic[s]->getSelectedId() <= 2) {
-            data1 |= 0x80;
+            sequencer.seqNotes[s].data1 |= 0x80;
         }
-        data2 = (int)seqVelocity[s]->getValue();
+        sequencer.seqNotes[s].data2 = (int)seqVelocity[s]->getValue();
         if (seqRhythmic[s]->getSelectedId() == 2) {
-            data2 |= 0x80;
+            sequencer.seqNotes[s].data2 |= 0x80;
         }
-
-        seqNotes[s].note = data1;
-        seqNotes[s].velocity = data2;
     }
 }
 
 
-void PanelSequencer::setSequencerSteps(uint8* steps) {
-    DBG("PanelEngine::setSequencerSteps() !!!!!!!!!!!!!! ");
+void PanelSequencer::setSequencerData(uint8* seqData) {
+    DBG("PanelEngine::setSequencerData() !!!!!!!!!!!!!! ");
 
-
-    for (int s = 0; s < 16; s++) {
-        seq1Steps[s]->setValue(steps[s], dontSendNotification);
-        seq2Steps[s]->setValue(steps[s + 16], dontSendNotification);
+    uint8* buffer = (uint8*)&sequencer;
+    for (int b = 0; b < 64; b++) {
+        buffer[b] = seqData[b];
     }
 
     int newNotes[16];
     int newEvents[16];
-    for (int b = 0; b < 16; b++) {
-        seqNotes[b].note = steps[32 + b * 2];
-        seqNotes[b].velocity = steps[32 + b * 2 + 1];
+
+    for (int s = 0; s < 16; s++) {
+        seq1Steps[s]->setValue(sequencer.seqController1[s], dontSendNotification);
+        seq2Steps[s]->setValue(sequencer.seqController2[s], dontSendNotification);
     }
     for (int b = 0; b < 16; b++) {
         // DBG("STEP " << b << " note " << sequencerSettings.steps[b].note() << " gate " << (sequencerSettings.steps[b].gate() ? 1 : 0));
         // seqNoteOctave[b]->setValue(sequencerSettings.steps[b].note());
-        // DBG("STEP " << b << " note " << seqNotes[b].getNote() << " gate " << (seqNotes[b].isGate() ? 1 : 0) << " velocity " << seqNotes[b].getVelocity());
-        seqVelocity[b]->setValue(seqNotes[b].getVelocity());
-        seqNoteOctave[b]->setSelectedId(((seqNotes[b].getNote()) / 12) - 1);
-        if (seqNotes[b].isGate()) {
-            if (seqNotes[b].isLegato()) {
+        // DBG("STEP " << b << " note " << sequencer.seqNotes[b].getNote() << " gate " << (sequencer.seqNotes[b].isGate() ? 1 : 0) << " velocity " << sequencer.seqNotes[b].getVelocity());
+        seqVelocity[b]->setValue(sequencer.seqNotes[b].getVelocity());
+        seqNoteOctave[b]->setSelectedId(((sequencer.seqNotes[b].getNote()) / 12) - 1);
+        if (sequencer.seqNotes[b].isGate()) {
+            if (sequencer.seqNotes[b].isLegato()) {
                 seqRhythmic[b]->setSelectedId(2);
             }
             else {
@@ -573,7 +568,7 @@ void PanelSequencer::setSequencerSteps(uint8* steps) {
         else {
             seqRhythmic[b]->setSelectedId(3);
         }
-        newNotes[b] = seqNotes[b].getNote() % 12;
+        newNotes[b] = sequencer.seqNotes[b].getNote() % 12;
         newEvents[b] = seqRhythmic[b]->getSelectedId();
     }
     seqScore->setNotes(newNotes);

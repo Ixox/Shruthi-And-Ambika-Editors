@@ -316,13 +316,13 @@ MidifiedFloatParameter* MainTabs::getParameterFromName(String componentName) {
 
 
 void MainTabs::buildParameters(AudioProcessor *audioProcessor) {
-	this->audioProcessor = audioProcessor;
+    this->audioProcessor = audioProcessor;
 
-	panelEngine->setParameterSet(audioProcessor);
-	panelEngine->buildParameters();
+    panelEngine->setParameterSet(audioProcessor);
+    panelEngine->buildParameters();
 
-	panelModulation->setParameterSet(audioProcessor);
-	panelModulation->buildParameters();
+    panelModulation->setParameterSet(audioProcessor);
+    panelModulation->buildParameters();
 
     panelSequencer->setParameterSet(audioProcessor);
     panelSequencer->buildParameters();
@@ -331,9 +331,12 @@ void MainTabs::buildParameters(AudioProcessor *audioProcessor) {
     audioProcessorCommon->setMISequencer(panelSequencer);
 
     panelSequencer->setCanSendSequencerClass(audioProcessorCommon);
-
+#ifdef SHRUTHI
+    panelEngine->setSettingsListener(audioProcessorCommon);
+    audioProcessorCommon->setFilterTypeUI(panelEngine);
+#endif
 #ifdef AMBIKA
-    audioProcessorCommon->setAmbikaMultiData(panelMulti);
+    audioProcessorCommon->setAmbikaMultiDataUI(panelMulti);
     panelMulti->setSettingsListener(audioProcessorCommon);
 #endif
 }

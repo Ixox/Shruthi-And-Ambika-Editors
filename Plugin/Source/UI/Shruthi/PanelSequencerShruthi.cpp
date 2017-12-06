@@ -37,7 +37,7 @@
 */
 //[/Headers]
 
-#include "PanelSequencer.h"
+#include "PanelSequencerShruthi.h"
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
@@ -184,6 +184,12 @@ PanelSequencer::PanelSequencer ()
     seqPushButton->setButtonText("PUSH To Shruthi");
     seqPushButton->addListener(this);
 
+    addAndMakeVisible(seqAutoPushButton = new TextButton("Auto Push"));
+    seqAutoPushButton->setClickingTogglesState(true);
+    seqAutoPushButton->setButtonText("AUTO Push");
+    seqAutoPushButton->setColour(TextButton::buttonOnColourId, Colours::red.darker());
+    seqAutoPushButton->addListener(this);
+
     addAndMakeVisible(seqPullButton = new TextButton("pull button"));
     seqPullButton->setTooltip("Pull all Sequencer parameters from plugin to shruthi");
     seqPullButton->setButtonText("PULL from Shruthi");
@@ -257,6 +263,7 @@ PanelSequencer::PanelSequencer ()
 
     }
     addAndMakeVisible(seqScore = new SequencerScore("seqScore"));
+    seqScore->addListener(this);
 
     //[/UserPreSize]
 
@@ -270,7 +277,7 @@ PanelSequencer::PanelSequencer ()
         seqNoteOctave[s]->setSelectedId((int)(note / 12) - 2);
         sequencerSettings.steps[s].set_note(36 + s * 3);
     }
-
+    sequencerModified = false;
     //[/Constructor]
 }
 
@@ -278,7 +285,7 @@ PanelSequencer::~PanelSequencer()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
     updateSequencerSteps();
-    canSendSequencer->sendSequencer((uint8*)sequencerSettings.steps);
+    canSendSequencer->sendSequencerToSynth((uint8*)sequencerSettings.steps);
     //[/Destructor_pre]
 
     tempoGroup = nullptr;
@@ -430,11 +437,12 @@ void PanelSequencer::resized()
 
     // Top area (number of step and randomizer;
     Rectangle<int> scoreTopArea = totalBounds.removeFromTop(30);
-    seqPushButton->setBounds(scoreTopArea.removeFromRight(120).reduced(10, 5));
-    seqRandomizeButton->setBounds(scoreTopArea.removeFromRight(120).reduced(10, 5));
+    seqPushButton->setBounds(scoreTopArea.removeFromRight(100).reduced(5, 5));
+    seqAutoPushButton->setBounds(scoreTopArea.removeFromRight(100).reduced(5, 5));
+    seqRandomizeButton->setBounds(scoreTopArea.removeFromRight(100).reduced(5, 5));
 
     scoreTopArea.removeFromLeft(scoreTopArea.getWidth() / 17);
-    seqPullButton->setBounds(scoreTopArea.removeFromLeft(120).reduced(10, 5));
+    seqPullButton->setBounds(scoreTopArea.removeFromLeft(100).reduced(5, 5));
     Rectangle<int> numberOfStepLabelBounds = scoreTopArea.removeFromLeft(scoreTopArea.getWidth() / 2);
     seqAllLabels[8]->setBounds(numberOfStepLabelBounds.removeFromRight(100).reduced(0, 5));
 
@@ -490,7 +498,15 @@ void PanelSequencer::buttonClicked(Button *buttonThatWasClicked) {
     else if (buttonThatWasClicked == seqPushButton) {
         updateSequencerSteps();
         if (canSendSequencer != nullptr) {
-            canSendSequencer->sendSequencer((uint8*)sequencerSettings.steps);
+            canSendSequencer->sendSequencerToSynth((uint8*)sequencerSettings.steps);
+        }
+    }
+    else if (buttonThatWasClicked == seqAutoPushButton) {
+        if (seqAutoPushButton->getToggleState()) {
+            startTimer(2000);
+        }
+        else {
+            stopTimer();
         }
     }
     else if (buttonThatWasClicked == seqRandomizeButton) {
@@ -505,10 +521,6 @@ void PanelSequencer::buttonClicked(Button *buttonThatWasClicked) {
         }
         seqScore->setNotes(notes);
         repaint();
-        updateSequencerSteps();
-        if (canSendSequencer != nullptr) {
-            canSendSequencer->sendSequencer((uint8*)sequencerSettings.steps);
-        }
     }
 }
 
@@ -547,7 +559,7 @@ void PanelSequencer::buildParameters() {
 
 
 // Copy own sequencer value so that PluginProcessor can store it
-uint8* PanelSequencer::getSequencerSteps() {
+uint8* PanelSequencer::getSequencerData() {
     updateSequencerSteps();
     return (uint8*)sequencerSettings.steps;
 }
@@ -573,7 +585,7 @@ void PanelSequencer::updateSequencerSteps() {
 }
 
 
-void PanelSequencer::setSequencerSteps(uint8 newSteps[32]) {
+void PanelSequencer::setSequencerData(uint8* newSteps) {
 
     DBG("PanelEngine::setSequencerSteps() !!!!!!!!!!!!!! ");
     int newNotes[16];
@@ -635,6 +647,11 @@ void PanelSequencer::sliderValueChanged(Slider* sliderThatWasMoved, bool fromPlu
             float value = (float)sliderThatWasMoved->getValue();
             ((MidifiedFloatParameter*)parameterReady)->setValueFromUI(value);
         }
+        for (int s = 0; s < 16; s++) {
+            if (sliderThatWasMoved == seq1Steps[s] || sliderThatWasMoved == seqVelocity[s]) {
+                sequencerModified = true;
+            }
+        }
     }
 
 }
@@ -656,15 +673,20 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
 
         for (int s = 0; s < 16; s++) {
             if (comboBoxThatHasChanged == seqRhythmic[s]) {
+                sequencerModified = true;
                 mustRedrawSequencer = true;
                 newEvents[s] = seqRhythmic[s]->getSelectedId();
                 break;
+            }
+            if (comboBoxThatHasChanged == seqNoteOctave[s]) {
+                sequencerModified = true;
             }
         }
         if (mustRedrawSequencer) {
             seqScore->setEvents(newEvents);
             seqScore->repaint();
         }
+
     }
 
 
@@ -692,35 +714,6 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
         }
     }
 
-    // Not a goo idea !
-    //if (comboBoxThatHasChanged == seqMode) {
-    //    bool arpEnabled = seqMode->getSelectedId() == 2;
-    //    bool seqEnabled = seqMode->getSelectedId() == 3;
-
-    //    for (int l = 4; l <= 7; l++) {
-    //        seqAllLabels[l]->setEnabled(arpEnabled);
-    //    }
-    //    arpGroup->setEnabled(arpEnabled);
-    //    seqDirection->setEnabled(arpEnabled);
-    //    seqRange->setEnabled(arpEnabled);
-    //    seqPattern->setEnabled(arpEnabled);
-    //    seqDivision->setEnabled(arpEnabled);
-
-    //    for (int s = 0; s < NUMBER_OF_STEPS; s++) {            
-    //        seqStepLabel[s]->setEnabled(seqEnabled);
-    //        seqRhythmic[s]->setEnabled(seqEnabled);
-    //        seqNoteOctave[s]->setEnabled(seqEnabled);
-    //        seqVelocity[s]->setEnabled(seqEnabled);
-    //    }
-    //    seqGroup->setEnabled(seqEnabled);
-    //    seqPullButton->setEnabled(seqEnabled);
-    //    seqPushButton->setEnabled(seqEnabled);
-    //    seqRandomizeButton->setEnabled(seqEnabled);
-    //    seqAllLabels[8]->setEnabled(seqEnabled);
-    //    seqNumberOfStep->setEnabled(seqEnabled);
-    //    seqScore->setEnabled(seqEnabled);
-    //    seqScore->repaint();
-    //}
 }
 
 
@@ -732,6 +725,24 @@ void PanelSequencer::updateComboFromParameter_hook(ComboBox* combo) {
     comboBoxChanged(combo, false);
 }
 
+
+void PanelSequencer::noteChanged(SequencerScore* sequencer, int step, int newNote) {
+    sequencerModified = true;
+}
+
+void PanelSequencer::timerCallback() {
+    if (seqAutoPushButton->getToggleState()) {
+        if (sequencerModified) {
+            sequencerModified = false;
+            seqAutoPushButton->setColour(TextButton::buttonOnColourId, Colours::red);
+            updateSequencerSteps();
+            canSendSequencer->sendSequencerToSynth((uint8*)sequencerSettings.steps);
+        }
+        else {
+            seqAutoPushButton->setColour(TextButton::buttonOnColourId, Colours::red.darker());
+        }
+    }
+}
 
 
 //[/MiscUserCode]
@@ -747,7 +758,7 @@ void PanelSequencer::updateComboFromParameter_hook(ComboBox* combo) {
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="PanelSequencer" componentName=""
-                 parentClasses="public Component, public Button::Listener, public Slider::Listener, public ComboBox::Listener, public PanelOfComponents, public ShruthiSequencer, public ComboAndSlider::Listener"
+                 parentClasses="public Component, public Button::Listener, public Slider::Listener, public ComboBox::Listener, public PanelOfComponents, public MISequencer, public ComboAndSlider::Listener, public Timer"
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="710">

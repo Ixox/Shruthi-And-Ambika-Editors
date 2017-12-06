@@ -17,14 +17,29 @@
 */
 
 
-#ifndef MI_SEQUENCER_H_
-#define MI_SEQUENCER_H_
+#pragma once
+
+#include "JuceHeader.h"
 
 
-class MISequencer {
-public:
-    virtual uint8* getSequencerData() = 0;
-    virtual void setSequencerData(uint8* seqData) = 0;
+struct AmbikaNotes {
+    uint8 data1;
+    uint8 data2;
+    uint8 getNote() {
+        return data1 & 0x7F;
+    }
+    uint8 getVelocity() {
+        return data2 & 0x7F;
+    }
+    bool isLegato() {
+        return data2 & 0x80;
+    }
+    bool isGate() {
+        return data1 & 0x80;
+    }
 };
-
-#endif // MI_SEQUENCER_H_
+struct AmbikaSequencer {
+    uint8 seqController1[16];
+    uint8 seqController2[16];
+    struct AmbikaNotes seqNotes[16];
+};

@@ -58,7 +58,7 @@ class PanelMulti  : public Component,
                     public Slider::Listener,
                     public ComboBox::Listener,
                     public ComboAndSlider::Listener,
-                    public AmbikaMultiData
+                    public AmbikaMultiDataUI
 {
 public:
     //==============================================================================

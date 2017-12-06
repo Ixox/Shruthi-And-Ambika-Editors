@@ -21,6 +21,7 @@
 
 #include "AudioProcessorCommon.h"
 #include "UI/Ambika/AmbikaMultiData.h"
+#include "UI/Ambika/AmbikaSequencer.h"
 
 class AudioProcessorAmbika : AudioProcessorCommon {
 public:
@@ -35,15 +36,18 @@ public:
     void requestPartDataTransfer();
     void decodeMultiData(const uint8* message) override;
     String getSynthName() override;
-    void sendSequencerToSynth();
+    void sendSequencerToSynth(uint8* seq);
+    uint8* getSequencerData() override { return (uint8*)&sequencer; }
     // MISettingsListener
     bool needsPart() override;
     bool needsPresetName() override;
     bool needsRealTimeUpdate() override;
     void setRealTimeUpdate(int param, int value) override;
 
-    void setAmbikaMultiData(AmbikaMultiData* amd) override { ambikaMultiData = amd;  }
-    void sendMultiData(MultiData* md) override;
+    void setAmbikaMultiDataUI(AmbikaMultiDataUI* amd) override { ambikaMultiDataUI = amd;  }
+    void sendMultiDataToAmbika(MultiData* md) override;
+    void setMultiDataUsed(bool mdu) override;
+
     void requestMultiDataTransfer() override;
 
     void setStateParamSpecific(XmlElement* xmlState) override;
@@ -54,9 +58,11 @@ public:
     void choseNewMidiDevice() override;
 
 private:
-    AmbikaMultiData* ambikaMultiData;
-    ScopedPointer<XmlElement> xmlMultiDataElement;
+    AmbikaMultiDataUI* ambikaMultiDataUI;
+    bool isMultiDataUsed;
+    struct MultiData multiData;
+    struct AmbikaSequencer sequencer;
     bool canReceiveSysexPartData;
-
+    uint8 seqController[2][16];
 
 };

@@ -23,8 +23,15 @@
 
 AudioProcessorAmbika::AudioProcessorAmbika()
 {
-    xmlMultiDataElement = new XmlElement("MultiData");
+    for (int s = 0; s < 16; s++) {
+        sequencer.seqNotes[s].data1 = 200 + s * 2;
+        sequencer.seqNotes[s].data2 = 80 + s * 2;
+        sequencer.seqController1[s] = (s * 30) % 256 ;
+        sequencer.seqController2[s] = (128 + s * 30) % 256;
+    }
+    canReceiveSysexPartData = false;
 }
+
 
 
 
@@ -365,6 +372,8 @@ void AudioProcessorAmbika::initAllParameters() {
         addMidifiedParameter(newParam);
         nrpmIndex[nrpmParam] = parameterIndex++;
     }
+
+    isMultiDataUsed = false;
 }
 
 
@@ -376,6 +385,11 @@ void AudioProcessorAmbika::encodeSysexPatch(uint8* message) {
 
 
 void AudioProcessorAmbika::decodeSysexPatch(const uint8* patch) {
+    if (!canReceiveSysexPatch) {
+        return;
+    }
+    canReceiveSysexPatch = true;
+
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
 
     for (int b = 0; b < 112; b++) {
@@ -398,6 +412,10 @@ void AudioProcessorAmbika::decodeSysexPatch(const uint8* patch) {
 
 
 void AudioProcessorAmbika::decodeSysexPartData(const uint8* pdata) {
+    if (!canReceiveSysexPartData) {
+        return;
+    }
+    canReceiveSysexPartData = false;
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
 
     for (int b = 0; b < 84; b++) {
@@ -435,9 +453,9 @@ char AudioProcessorAmbika::sysexMachineCode() {
 void AudioProcessorAmbika::requestPatchTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x11, 0x00, 0x00, 0x00 };
     command[6] = currentPart;
+    canReceiveSysexPatch = true;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
     requestPartDataTransfer();
-    canReceiveSysexSequencer = true;
     requestSequencerTransfer();
 }
 
@@ -445,31 +463,29 @@ void AudioProcessorAmbika::requestPatchTransfer() {
 void AudioProcessorAmbika::requestPartDataTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x15, 0x00, 0x00, 0x00 };
     command[6] = currentPart;
-    sendSysex(MidiMessage::createSysExMessage(command, 9));
     canReceiveSysexPartData = true;
+    sendSysex(MidiMessage::createSysExMessage(command, 9));
 }
 
 
 void AudioProcessorAmbika::requestSequencerTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x12, 0x00, 0x00, 0x00 };
     command[6] = currentPart;
+    canReceiveSysexSequencer = true;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
 }
 
 void AudioProcessorAmbika::decodeMultiData(const uint8* message) {
-    if (canReceiveSysexPartData) {
-        struct MultiData multiData;
+    uint8* buffer = (uint8*)&multiData;
+    for (int b = 0; b < 52; b++) {
+        buffer[b] = message[b * 2] * 0x10 + message[b * 2 + 1];
+    }
 
-        uint8* buffer = (uint8*)&multiData;
-        for (int b = 0; b < 52; b++) {
-            buffer[b] = message[b * 2] * 0x10 + message[b * 2 + 1];
-        }
+    updateMidiChannelFromPart(&multiData);
 
-        updateMidiChannelFromPart(&multiData);
-
-        const MessageManagerLock mmLock;
-        ambikaMultiData->setMultiData(&multiData);
-        canReceiveSysexPartData = false;
+    const MessageManagerLock mmLock;
+    if (audioProcessorEditor != nullptr) {
+        ambikaMultiDataUI->setMultiData(&multiData);
     }
 }
 
@@ -478,19 +494,18 @@ String AudioProcessorAmbika::getSynthName() {
     return "Ambika";
 }
 
-void AudioProcessorAmbika::sendSequencerToSynth() {
+void AudioProcessorAmbika::sendSequencerToSynth(uint8* seq) {
 
-    for (int s = 0; s < 32; s++) {
-        MidifiedFloatParameter mfp("Seq", 112 + 16 + 32 + s, 1, 0, 255, 0);
-        if (s == 0 || s == 2 || s == 4) {
-            int note = miSteps[s] & 0x7f;
-            int octave = note / 12;
-            note = note % 12;
-            int velocity = miSteps[s+ 1] & 0x7f;
-            // DBG((s + 1) << "==> note " << note << " Octave " << octave << " velocity " << velocity);
-
+    if (seq != nullptr) {
+        for (int s = 0; s < 64; s++) {
+            ((uint8*)&sequencer)[s] = seq[s];
         }
-        mfp.setRealValueNoNotification((float)miSteps[s]);
+    }
+
+    uint8* buffer = (uint8*) &sequencer;
+    for (int s = 0; s < 64; s++) {
+        MidifiedFloatParameter mfp("Seq", 112 + 16 + s, 1, 0, 255, 0);
+        mfp.setRealValueNoNotification((float) (buffer[s]));
         mfp.addNrpn(midiOutBuffer, currentMidiChannel);
     }
     flushMidiOut();
@@ -506,10 +521,14 @@ void AudioProcessorAmbika::setRealTimeUpdate(int param, int value) {
     //  0..15: step sequence 1
     // 16..31: step sequence 2
     // 32..63: (note value | 0x80 if gate), (note velocity | 0x80 if legato)
-    MidifiedFloatParameter mfp("Seq", 112 + 16 + param, 1, 0, 255, 0);
-    mfp.setRealValueNoNotification((float)value);
-    mfp.addNrpn(midiOutBuffer, currentMidiChannel);
-    flushMidiOut();
+    if (midiDeviceNumber >= 0) {
+        MidifiedFloatParameter mfp("Seq", 112 + 16 + param, 1, 0, 255, 0);
+        mfp.setRealValueNoNotification((float)value);
+        mfp.addNrpn(midiOutBuffer, currentMidiChannel);
+        flushMidiOut();
+    }
+    ((uint8*)&sequencer)[param] = value;
+    DBG("New seq value: " << param << " value : " << value);
 }
 
 
@@ -520,24 +539,15 @@ void AudioProcessorAmbika::decodeSysexSequencer(const uint8* steps) {
     }
     // Other info recevied..
     const uint8* patch = steps + 16;
-
-    uint8 allAmbikaSequence[64];
-
+    uint8* seq = (uint8*)&sequencer;
     DBG("YEAH NEW AMBIKA SEQUENCER!!!");
-    for (int b = 0; b < 32; b++) {
-        allAmbikaSequence[b] = patch[b * 2] * 0x10 + patch[b * 2 + 1];
+    for (int b = 0; b < 64; b++) {
+        seq[b] = patch[b * 2] * 0x10 + patch[b * 2 + 1];
     }
-    
-    patch = patch + 64;
-    for (int b = 0; b < 16; b++) {
-        miSteps[b * 2] = patch[b * 4] * 0x10 + patch[b * 4 + 1];
-        miSteps[b * 2 + 1] = patch[b * 4 + 2] * 0x10 + patch[b * 4 + 3];
-        allAmbikaSequence[32 + b * 2] = miSteps[b * 2];
-        allAmbikaSequence[32 + b * 2 + 1] = miSteps[b * 2 + 1];
-    }
+
     const MessageManagerLock mmLock;
-    if (shruthiSequencer != nullptr) {
-        shruthiSequencer->setSequencerSteps(allAmbikaSequence);
+    if (sequencerUI != nullptr) {
+        sequencerUI->setSequencerData((uint8*)&sequencer);
     }
 }
 
@@ -548,12 +558,14 @@ void AudioProcessorAmbika::updateMidiChannelFromPart(MultiData* md) {
     }
     currentMidiChannel = midiChannelForPart[currentPart - 1];
     // Let midi device know
-    midiDevice->setMidiChannelForPart(midiChannelForPart);
+    midiDevice->setMidiChannelForPart(midiDeviceNumber, midiChannelForPart);
     settingsChangedForUI();
 }
 
 
-void AudioProcessorAmbika::sendMultiData(MultiData* md) {
+void AudioProcessorAmbika::sendMultiDataToAmbika(MultiData* md) {
+    if (!isMultiDataUsed) return;
+
     uint8 sysexMessage[256];
 
     DBG("AudioProcessorAmbika::sendMultiData");
@@ -569,7 +581,20 @@ void AudioProcessorAmbika::sendMultiData(MultiData* md) {
     memcpy(sysexMessage, startSysex, 7);
     int index = 7;
     int checkSum = 0;
-    uint8* patch = (uint8*)md;
+    uint8* patch;
+    if (md != nullptr) {
+        patch = (uint8*)md;
+    }
+    else {
+        patch = (uint8*)&multiData;
+    }
+    if (isMultiDataUsed) {
+        uint8* myMultiData = (uint8*)&multiData;
+        for (int s = 0; s < 56; s++) {
+            // Copy to this object
+            myMultiData[s] = patch[s];
+        }
+    }
     for (int s = 0; s < 56; s++) {
         sysexMessage[index++] = patch[s] >> 4;
         sysexMessage[index++] = patch[s] & 0xf;
@@ -598,49 +623,88 @@ void AudioProcessorAmbika::setStateParamSpecific(XmlElement* xmlState) {
 
     XmlElement* xmlMD = xmlState->getChildByName("MultiData");
     if (xmlMD != nullptr) {
-        ambikaMultiData->setMultiDataUsed(true);
-
-        struct MultiData multiData;
+        isMultiDataUsed = true;
         uint8* md = (uint8*)&multiData;
         // loadt MultiData
         for (int k = 0; k < 56; k++) {
             md[k] = xmlMD->getIntAttribute("MD_uint8_" + String(k));
         }
-
         updateMidiChannelFromPart(&multiData);
 
-        const MessageManagerLock mmLock;
-        ambikaMultiData->setMultiData(&multiData);
+        if (audioProcessorEditor != nullptr) {
+            ambikaMultiDataUI->setMultiDataUsed(true);
+            const MessageManagerLock mmLock;
+            ambikaMultiDataUI->setMultiData(&multiData);
+        }
+        sendMultiDataToAmbika((MultiData*) nullptr);
     }
     else {
-        ambikaMultiData->setMultiDataUsed(false);
+        isMultiDataUsed = false;
+        if (audioProcessorEditor != nullptr) {
+            ambikaMultiDataUI->setMultiDataUsed(false);
+        }
     }
 
     partChanged(xmlState->getIntAttribute("CurrentPart", 1));
     settingsChangedForUI();
+
+    if (xmlState->hasAttribute("SequencerStep0")) {
+        uint8* seq = (uint8*)&sequencer;
+        for (int s = 0; s < 16; s++) {
+            int stepValue = xmlState->getIntAttribute("SequencerStep" + String(s));
+            seq[s * 4] = (stepValue >> 24) & 0xff;
+            seq[s * 4 + 1] = (stepValue >> 16) & 0xff;
+            seq[s * 4 + 2] = (stepValue >> 8) & 0xff;
+            seq[s * 4 + 3] = stepValue & 0xff;
+        }
+        if (sequencerUI != nullptr) {
+            sequencerUI->setSequencerData((uint8*)&sequencer);
+        }
+
+        for (int d = 0; d < 4; d++) {
+            DBG(">SET Note " << d << " : " << sequencer.seqNotes[d].getNote() << " velocity: " << sequencer.seqNotes[d].getVelocity());
+        }
+
+        sendSequencerToSynth((uint8*)nullptr);
+    }
+
 }
 
 void AudioProcessorAmbika::getStateParamSpecific(XmlElement* xml) {
     xml->setAttribute("CurrentPart", currentPart);
 
-    bool useMultiData = ambikaMultiData->isMultiDataUsed();
-    if (useMultiData) {
+    if (isMultiDataUsed) {
+        XmlElement* xmlMultiDataElement = new XmlElement("MultiData");
+
         // update MultiData
-        uint8* multiData = (uint8*)ambikaMultiData->getMultiData();
+        uint8* md = (uint8*)&multiData;
         for (int k = 0; k < 56; k++) {
-            xmlMultiDataElement->setAttribute("MD_uint8_" + String(k), multiData[k]);
+            xmlMultiDataElement->setAttribute("MD_uint8_" + String(k), md[k]);
         }
         xml->addChildElement(xmlMultiDataElement);
     }
+
+    for (int d = 0; d < 4; d++) {
+        DBG("<GET Note " << d << " : " << sequencer.seqNotes[d].getNote() << " velocity: " << sequencer.seqNotes[d].getVelocity());
+    }
+    uint8* seq = (uint8*)&sequencer;
+    for (int s = 0; s < 16; s++) {
+        xml->setAttribute("SequencerStep" + String(s), (seq[s * 4] << 24) + (seq[s * 4 + 1] << 16) + (seq[s * 4 + 2] << 8) + seq[s * 4 + 3]);
+    }
+
 }
 
 
 void AudioProcessorAmbika::choseNewMidiDevice() {
-    if (midiDevice->forceChoseNewDevices(getSynthName())) {
-        if (needsPart()) {
-            requestMultiDataTransfer();
-        }
+    int newDeviceNumber = midiDevice->openChoseDeviceWindow(midiDeviceNumber);
+    if (newDeviceNumber >= 0) {
+        midiDeviceNumber = newDeviceNumber;
+        requestMultiDataTransfer();
     }
+}
+
+void AudioProcessorAmbika::setMultiDataUsed(bool mdu) {
+    isMultiDataUsed = mdu;
 }
 
 

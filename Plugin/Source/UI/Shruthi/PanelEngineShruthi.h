@@ -42,9 +42,15 @@
 #include "JuceHeader.h"
 #include "Enveloppe.h"
 #include "PanelOfComponents.h"
+#include "../MISettingsListener.h"
 
 #define NUMBER_OF_VOICES 3
 #define NUMBER_SUPPORTED_FILTERS 4
+
+#define FILTER_SMR4 0
+#define FILTER_SVF 1
+#define FILTER_4PM 2
+#define FILTER_POLIVOKS 3
 
 //[/Headers]
 
@@ -62,7 +68,8 @@ class PanelEngine  : public Component,
                      public Slider::Listener,
                      public Button::Listener,
                      public ComboBox::Listener,
-                     public PanelOfComponents
+                     public PanelOfComponents,
+                     public FilterTypeUI
 {
 public:
     //==============================================================================
@@ -84,7 +91,8 @@ public:
 	void updateSliderFromParameter_hook(Slider* slider) override;
 	void updateUIEnveloppe(String paramName) override;;
 	bool containsThisParameterAsEnveloppe(String name) override;;
-
+    void setSettingsListener(MISettingsListener* misl) { settingsListener = misl; }
+    void setFitlerType(int ft);
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -94,6 +102,7 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    MISettingsListener* settingsListener;
 
 
 	ScopedPointer<Label> osc1ShapeLabel;
@@ -141,6 +150,11 @@ private:
     ScopedPointer<ComboBox> filterSVFMode1;
     ScopedPointer<Label> filterSVFMode2Label;
     ScopedPointer<ComboBox> filterSVFMode2;
+
+    ScopedPointer<Label> filter4PMModeLabel;
+    ScopedPointer<ComboBox> filter4PMMode;
+    ScopedPointer<Label> filter4PMFlavorLabel;
+    ScopedPointer<ComboBox> filter4PMFlavor;
 
     ScopedPointer<GroupComponent> filterSVFGroup;
     ScopedPointer<TextButton> tuneLegato;

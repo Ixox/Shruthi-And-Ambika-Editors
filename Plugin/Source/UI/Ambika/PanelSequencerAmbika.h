@@ -43,6 +43,7 @@
 #include "SliderPfm2.h"
 #include "SequencerScore.h"
 #include "ShruthiSequencer.h"
+#include "AmbikaSequencer.h"
 
 #define NUMBER_OF_STEPS 16
 
@@ -92,8 +93,8 @@ public:
     void updateSequencerSteps();
 
     // ShruthiSequencer
-    uint8* getSequencerSteps() override;
-    void setSequencerSteps(uint8 steps[32]) override;
+    uint8* getSequencerData() override;
+    void setSequencerData(uint8* seqData) override;
 
     // SequencerScoreListener
     void noteChanged(SequencerScore* sequencer, int step, int newNote);
@@ -129,25 +130,9 @@ private:
     ScopedPointer<SequencerScore> seqScore;
     ScopedPointer<TextButton> seqPullButton;
     ScopedPointer<TextButton> seqRandomizeButton;
-    int stepControl[NUMBER_OF_STEPS];
     CanSendSequencerClass* canSendSequencer;
-    struct AmbikaNotes {
-        uint8 note;
-        uint8 velocity;
-        uint8 getNote() {
-            return note & 0x7F;
-        }
-        uint8 getVelocity() {
-            return velocity & 0x7F;
-        }
-        bool isLegato() {
-            return velocity & 0x80;
-        }
-        bool isGate() {
-            return note & 0x80;
-        }
-    };
-    struct AmbikaNotes seqNotes[16];
+
+    struct AmbikaSequencer sequencer;
     //[/UserVariables]
 
     //==============================================================================

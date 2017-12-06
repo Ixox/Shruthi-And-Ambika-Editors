@@ -277,7 +277,7 @@ PanelEngine::PanelEngine ()
 
     //newParam = new MidifiedFloatParameter(String("Enveloppe->Cutoff"), nrpmParam, 1, 0, 63, 0);
 
-    addAndMakeVisible(filterEnvLabel = new Label("Filter Env label", "Env1->Cutoff"));
+    addAndMakeVisible(filterEnvLabel = new Label("Filter Env label", "Env2->Cutoff"));
     filterEnvLabel->setJustificationType(Justification::centred);
 
     addAndMakeVisible(filterEnv = new SliderPfm2("Filter Env"));
@@ -759,19 +759,13 @@ void PanelEngine::buttonClicked(Button* buttonThatWasClicked, bool fromPluginUI)
                 ". Set midi out to ctrl\n"
                 ". Remember the midi channel used\n\n"
                 "In the main editor window :\n"
-                ". Click on 'Midi' button to select your midi device\n"
+                ". Click on 'Device' button to select your midi device\n"
                 ". Select the midi channel (1-16) of the Ambika part             \n"
                 "   you want to talk to.");
 
             const void* str = "If you like and use this Editor, please pay for it (10€), thanks";
-#ifdef SHRUTHI
-            HyperlinkButton paypal(String::createStringFromData(str, 94),
-                URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4S6JPKATW2AC4"));
-#endif
-#ifdef AMBIKA
             HyperlinkButton paypal(String::createStringFromData(str, 94),
                 URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6LJNV844H68SY"));
-#endif
             paypal.setButtonText("Pay Now");
             paypal.setSize(400, 45);
             midiWindow.addCustomComponent(&paypal);

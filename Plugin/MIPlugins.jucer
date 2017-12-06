@@ -28,6 +28,8 @@
         <GROUP id="{300171F4-6822-A1D3-51D8-FA85BFEAD557}" name="Ambika">
           <FILE id="Rnu0iH" name="AmbikaMultiData.h" compile="0" resource="0"
                 file="Source/UI/Ambika/AmbikaMultiData.h"/>
+          <FILE id="WBzQv1" name="AmbikaSequencer.h" compile="0" resource="0"
+                file="Source/UI/Ambika/AmbikaSequencer.h"/>
           <FILE id="w2kEQp" name="PanelEngineAmbika.cpp" compile="0" resource="0"
                 file="Source/UI/Ambika/PanelEngineAmbika.cpp"/>
           <FILE id="ibq8v9" name="PanelEngineAmbika.h" compile="0" resource="0"
@@ -44,6 +46,7 @@
                 file="Source/UI/Ambika/PanelSequencerAmbika.h"/>
         </GROUP>
         <GROUP id="{3C2B77ED-9D06-13BC-55BC-855494C02A93}" name="Shruthi">
+          <FILE id="TKI97s" name="FilterTypeUI.h" compile="0" resource="0" file="Source/UI/Shruthi/FilterTypeUI.h"/>
           <FILE id="HOIkct" name="PanelEngineShruthi.cpp" compile="0" resource="0"
                 file="Source/UI/Shruthi/PanelEngineShruthi.cpp"/>
           <FILE id="lHej8j" name="PanelEngineShruthi.h" compile="0" resource="0"
@@ -183,21 +186,24 @@
         <MODULEPATH id="juce_audio_utils" path="../../juce"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <VS2015 targetFolder="Builds/VisualStudio2015" bigIcon="rxcUSn" extraDefs="">
+    <VS2015 targetFolder="Builds/VisualStudio2015" bigIcon="rxcUSn" extraDefs=""
+            extraCompilerFlags="">
       <CONFIGURATIONS>
         <CONFIGURATION name="Shruthi_x64_DEBUG" winWarningLevel="3" generateManifest="1"
                        winArchitecture="x64" isDebug="1" optimisation="1" targetName="ShruthiEditorDebug_x64"
-                       defines="SHRUTHI=1"/>
+                       defines="SHRUTHI=1" postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
         <CONFIGURATION name="Shruthi_x64" winWarningLevel="3" generateManifest="1" winArchitecture="x64"
-                       isDebug="0" optimisation="3" targetName="ShruthiEditor_x64" defines="SHRUTHI=1"/>
+                       isDebug="0" optimisation="3" targetName="ShruthiEditor_x64" defines="SHRUTHI=1"
+                       postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
         <CONFIGURATION name="Shruthi_w32_DEBUG" winWarningLevel="3" generateManifest="1"
                        winArchitecture="Win32" isDebug="1" optimisation="1" targetName="ShruthiEditorDebug_w32"
-                       defines="SHRUTHI=1"/>
+                       defines="SHRUTHI=1" postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
         <CONFIGURATION name="Shruthi_w32" winWarningLevel="3" generateManifest="1" winArchitecture="Win32"
-                       isDebug="0" optimisation="3" targetName="ShruthiEditor_w32" defines="SHRUTHI=1"/>
+                       isDebug="0" optimisation="3" targetName="ShruthiEditor_w32" defines="SHRUTHI=1"
+                       postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
         <CONFIGURATION name="Ambika_x64_DEBUG" winWarningLevel="3" generateManifest="1"
                        winArchitecture="x64" isDebug="1" optimisation="1" targetName="AmbikaEditorDebug_x64"
-                       defines="AMBIKA=1&#10;"/>
+                       defines="AMBIKA=1&#10;" postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="JuceLibraryCode\modules"/>

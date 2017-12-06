@@ -21,6 +21,9 @@
 #ifdef AMBIKA
 #include "Ambika/AmbikaMultiData.h"
 #endif
+#ifdef SHRUTHI
+#include "Shruthi/FilterTypeUI.h"
+#endif
 
 class MISettingsListener {
 public:
@@ -32,8 +35,15 @@ public:
     virtual bool needsPresetName() = 0;
     virtual int getMidiChannel() = 0;
     virtual int getPart() = 0;
+#ifdef SHRUTHI
+    virtual void setFilterType(int ft) = 0;
+    virtual void setFilterTypeUI(FilterTypeUI* ftUI) = 0;
+
+#endif
 #ifdef AMBIKA
-    virtual void sendMultiData(MultiData* md) = 0;
+    virtual void setAmbikaMultiDataUI(AmbikaMultiDataUI* amd) = 0;
+    virtual void setMultiDataUsed(bool mdu) = 0;
+    virtual void sendMultiDataToAmbika(MultiData* md) = 0;
     virtual void requestMultiDataTransfer() = 0;
 #endif
 

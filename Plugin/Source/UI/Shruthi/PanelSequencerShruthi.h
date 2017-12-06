@@ -65,7 +65,9 @@ class PanelSequencer  : public Component,
                         public ComboBox::Listener,
                         public PanelOfComponents,
                         public MISequencer,
-                        public ComboAndSlider::Listener
+                        public ComboAndSlider::Listener,
+                        public Timer,
+                        public SequencerScore::Listener
 {
 public:
     //==============================================================================
@@ -92,9 +94,12 @@ public:
     void updateSequencerSteps();
 
     // ShruthiSequencer
-    uint8* getSequencerSteps();
-    void setSequencerSteps(uint8 steps[32]);
+    uint8* getSequencerData() override;
+    void setSequencerData(uint8* steps) override;
 
+    // Timer
+    void timerCallback() override;
+    void noteChanged(SequencerScore* sequencer, int step, int newNote) override;
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -126,11 +131,12 @@ private:
     ScopedPointer<Slider> seq1Steps[NUMBER_OF_STEPS];
     ScopedPointer<SequencerScore> seqScore;
     ScopedPointer<TextButton> seqPushButton;
+    ScopedPointer<TextButton> seqAutoPushButton;
     ScopedPointer<TextButton> seqPullButton;
     ScopedPointer<TextButton> seqRandomizeButton;
-    int stepControl[NUMBER_OF_STEPS];
     CanSendSequencerClass* canSendSequencer;
     struct shruthi::SequencerSettings sequencerSettings;
+    bool sequencerModified;
     //[/UserVariables]
 
     //==============================================================================
