@@ -271,7 +271,6 @@ PanelModulation::PanelModulation ()
 
 
     //[Constructor] You can add your own custom stuff here..
-	eventsToAdd = nullptr;
     //[/Constructor]
 }
 

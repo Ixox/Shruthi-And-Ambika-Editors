@@ -58,6 +58,7 @@ class AmbikaMultiDataUI;
 class CanSendSequencerClass {
 public:
     virtual void sendSequencerToSynth(uint8* sequencer) = 0;
+    virtual void setSequencerData(uint8* sequencer) = 0;
     virtual void requestSequencerTransfer() = 0;
     virtual bool needsRealTimeUpdate() = 0;
     virtual void setRealTimeUpdate(int param, int value) = 0;
@@ -78,6 +79,8 @@ public:
 
 	//==============================================================================
 	AudioProcessorEditor* createEditor();
+    virtual void createEditorSpecific(AudioProcessorEditor* audioProcessorEditor) {};
+
 	bool hasEditor() const;
     void redrawUI();
 
@@ -126,7 +129,7 @@ public:
 	virtual void choseNewMidiDevice() = 0;
 
     // Sysex
-    void sendPatchToSynth();
+    virtual void sendPatchToSynth() = 0;
     virtual void requestPatchTransfer() = 0;
     virtual void decodeSysexPatch(const uint8* message) = 0;
     virtual void decodeSysexSequencer(const uint8* message) = 0;
@@ -141,6 +144,7 @@ public:
     // CanSendSequencerClass
     virtual void requestSequencerTransfer() override  = 0;
     virtual uint8* getSequencerData() = 0;
+    virtual void setSequencerData(uint8* sequencer) = 0;
     virtual bool needsRealTimeUpdate() override { return false; }
     virtual void setRealTimeUpdate(int param, int value) override {}
 
@@ -157,7 +161,9 @@ public:
     int getMidiChannel() { return currentMidiChannel; }
     int getPart() { return currentPart; }
     virtual void decodeSysexPartData(const uint8* pdata) {};
-
+    // Tab aware
+    void setSelectedTab(int t);
+    int getSelectedTab();
 
 
 protected:
@@ -172,12 +178,15 @@ protected:
     MidiBuffer midiOutBuffer;
     bool canReceiveSysexPatch; // 
     bool canReceiveSysexSequencer; // 
+    bool canReceiveMultiPart;
+    bool receivingMultiPart;
     MISequencer* sequencerUI;
     SharedResourcePointer<MidiDevice> midiDevice;
     int midiDeviceNumber;
     bool askForMidiDevice;
+    bool muteMidiDuringInitialisation;
 private:
-    bool receivingMultiPart;
+    int selectedTab;
     int editorWidth, editorHeight;
 	MidiBuffer newMidiNotes;
 	// Shared by all plugin instances

@@ -160,6 +160,8 @@ void EnveloppeAbstract::mouseExit(const MouseEvent &event) {
 	repaint();
 }
 
+
+
 void EnveloppeAbstract::mouseDown(const MouseEvent &event) {
 	if (overPointIndex != -1) {
 		draggingPointIndex = overPointIndex;

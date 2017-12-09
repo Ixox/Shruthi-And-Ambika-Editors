@@ -59,11 +59,16 @@ PanelMulti::PanelMulti ()
     useMultiLabel->setColour (TextEditor::backgroundColourId, Colour (0x00000000));
 
     addAndMakeVisible (pushMultiButton = new TextButton ("Push Multi Button"));
-    pushMultiButton->setButtonText (TRANS("Push multi settings"));
+    pushMultiButton->setButtonText (TRANS("Push Config to Ambika"));
+
+    addAndMakeVisible (pullMultiButton = new TextButton ("Pull Multi Button"));
+    pullMultiButton->setButtonText (TRANS("Pull"));
 
 
     //[UserPreSize]
     pushMultiButton->addListener(this);
+    pullMultiButton->addListener(this);
+    useMultiButton->setToggleState(true, false);
     useMultiButton->addListener(this);
 
 
@@ -108,26 +113,21 @@ PanelMulti::PanelMulti ()
     // PARTS
     String partItemLabelText[] = { "Midi", "Low Note", "High Note", "Voice 1", "Voice 2", "Voice 3", "Voice 4", "Voice 5", "Voice 6" };
     for (int l = 0; l < 9; l++) {
-        DBG("PART " << l);
         addAndMakeVisible(partItemLabel[l] = new Label("PART ITEM LABEL "+ String(l), partItemLabelText[l]));
         partItemLabel[l]->setJustificationType(Justification::centred);
     }
     String noteStrings[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A" , "A#", "B" };
     for (int l = 0; l < NUMBER_OF_PARTS; l++) {
-        DBG("PART " << l);
         addAndMakeVisible(partLabel[l] = new Label("PART LABEL" + String(l), "Part " + String(l + 1)));
         partLabel[l]->setJustificationType(Justification::centred);
 
-        DBG("PART VOICE" << l);
         for (int v = 0; v < NUMBER_OF_PARTS; v++) {
-            DBG("VOICE " << v);
             addAndMakeVisible(partVoicesLink[l][v] = new ToggleButton("Part " + String(l + 1) + " Voice " + String(v + 1)));
             partVoicesLink[l][v]->setButtonText("");
             partVoicesLink[l][v]->setRadioGroupId(1721 + v);
             partVoicesLink[l][v]->addListener(this);
         }
 
-        DBG("PART CHANNEL" << l);
         addAndMakeVisible(partChannelLink[l] = new ComboBox("Part Channel " + String(l + 1)));
         partChannelLink[l]->setEditableText(false);
         partChannelLink[l]->setJustificationType(Justification::centred);
@@ -139,7 +139,6 @@ PanelMulti::PanelMulti ()
         partChannelLink[l]->setScrollWheelEnabled(true);
         partChannelLink[l]->addListener(this);
 
-        DBG("PART NoteStart" << l);
 
         addAndMakeVisible(partNoteStart[l] = new ComboBox("Par NoteStart " + String(l + 1)));
         partNoteStart[l]->setEditableText(false);
@@ -152,7 +151,6 @@ PanelMulti::PanelMulti ()
                 }
             }
         }
-        DBG("PART NoteSend" << l);
         partNoteStart[l]->setSelectedId(1);
         partNoteStart[l]->setScrollWheelEnabled(true);
         partNoteStart[l]->addListener(this);
@@ -173,9 +171,6 @@ PanelMulti::PanelMulti ()
         partNoteEnd[l]->addListener(this);
 
     }
-
-
-
 
     // KNOBS
 
@@ -329,7 +324,6 @@ PanelMulti::PanelMulti ()
         knobTarget[k]->setJustificationType(Justification::centred);
         knobTarget[k]->setColour(ComboBox::buttonColourId, Colours::blue);
         for (int i = 0; knobAssignStructs[i].name.length() > 0; i++) {
-            DBG("i " << i << " name '" << knobAssignStructs[i].name << "' comboId : " << knobAssignStructs[i].getComboBoxId());
             knobTarget[k]->addItem(knobAssignStructs[i].name, knobAssignStructs[i].getComboBoxId());
         }
         knobTarget[k]->setSelectedId(1);
@@ -345,16 +339,16 @@ PanelMulti::PanelMulti ()
 
 
     //[Constructor] You can add your own custom stuff here..
-    if (settingsListener && useMultiButton->getToggleState()) {
-        settingsListener->sendMultiDataToAmbika(getMultiData());
-    }
     settingsListener = nullptr;
+    useMultiButton->setToggleState(false, true);
+
     //[/Constructor]
 }
 
 PanelMulti::~PanelMulti()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
+    settingsListener->setMultiData(getMultiData());
     //[/Destructor_pre]
 
     voicesGroup = nullptr;
@@ -363,6 +357,7 @@ PanelMulti::~PanelMulti()
     useMultiButton = nullptr;
     useMultiLabel = nullptr;
     pushMultiButton = nullptr;
+    pullMultiButton = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -390,7 +385,8 @@ void PanelMulti::resized()
     buttonsGroup->setBounds (proportionOfWidth (0.0170f), proportionOfHeight (0.2527f), proportionOfWidth (0.9002f), proportionOfHeight (0.3224f));
     useMultiButton->setBounds (288, 56, 150, 24);
     useMultiLabel->setBounds (96, 32, 174, 72);
-    pushMultiButton->setBounds (176, 152, 152, 40);
+    pushMultiButton->setBounds (256, 152, 152, 40);
+    pullMultiButton->setBounds (72, 152, 152, 40);
     //[UserResized] Add your own custom resize handling here..
     }
 
@@ -405,7 +401,8 @@ void PanelMulti::resized()
     Rectangle<int> useThisPanel = topBounds.removeFromLeft(topBounds.getWidth() / 3).reduced(10,0);
 
     Rectangle<int> pushMultiButtonBounds = useThisPanel.removeFromBottom(useThisPanel.getHeight() / 3);
-    pushMultiButton->setBounds(pushMultiButtonBounds.reduced(pushMultiButtonBounds.getWidth() / 2 - 60, pushMultiButtonBounds.getHeight() / 2 - 12));
+    pullMultiButton->setBounds(pushMultiButtonBounds.removeFromLeft(80).reduced(0, pushMultiButtonBounds.getHeight() / 2 - 12));
+    pushMultiButton->setBounds(pushMultiButtonBounds.reduced(pushMultiButtonBounds.getWidth() / 2 - 70, pushMultiButtonBounds.getHeight() / 2 - 12));
 
     useMultiLabel->setBounds(useThisPanel.removeFromTop(useThisPanel.getHeight() / 2));
     useMultiButton->setBounds(useThisPanel.reduced(pushMultiButtonBounds.getWidth() / 2 - 40, 0));
@@ -512,9 +509,13 @@ void PanelMulti::buttonClicked(Button *buttonThatWasClicked) {
     if (buttonThatWasClicked == pushMultiButton) {
         settingsListener->sendMultiDataToAmbika(getMultiData());
     }
+    if (buttonThatWasClicked == pullMultiButton) {
+        requestMultiDataFromAmbika();
+    }
     if (buttonThatWasClicked == useMultiButton) {
         bool state = useMultiButton->getToggleState();
         pushMultiButton->setEnabled(state);
+        pullMultiButton->setEnabled(state);
         tempoBpm->setEnabled(state);
         tempoGroove->setEnabled(state);
         tempoAmount->setEnabled(state);
@@ -537,9 +538,6 @@ void PanelMulti::buttonClicked(Button *buttonThatWasClicked) {
 
         if (settingsListener != nullptr) {
             settingsListener->setMultiDataUsed(state);
-            if (state) {
-                settingsListener->requestMultiDataTransfer();
-            }
         }
     }
 }
@@ -608,6 +606,11 @@ void PanelMulti::setMultiDataUsed(bool mdu) {
     useMultiButton->setToggleState(mdu, true);
 }
 
+void PanelMulti::requestMultiDataFromAmbika() {
+    settingsListener->requestMultiDataTransfer();
+}
+
+
 
 #endif
 //[/MiscUserCode]
@@ -623,7 +626,7 @@ void PanelMulti::setMultiDataUsed(bool mdu) {
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="PanelMulti" componentName=""
-                 parentClasses="public Component, public Button::Listener, public Slider::Listener, public ComboBox::Listener, public ComboAndSlider::Listener, public AmbikaMultiData"
+                 parentClasses="public Component, public Button::Listener, public Slider::Listener, public ComboBox::Listener, public ComboAndSlider::Listener, public AmbikaMultiDataUI"
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="400">
@@ -647,7 +650,10 @@ BEGIN_JUCER_METADATA
          fontname="Default font" fontsize="15" kerning="0" bold="0" italic="0"
          justification="36"/>
   <TEXTBUTTON name="Push Multi Button" id="2228958e47087a4f" memberName="pushMultiButton"
-              virtualName="" explicitFocusOrder="0" pos="176 152 152 40" buttonText="Push multi settings"
+              virtualName="" explicitFocusOrder="0" pos="256 152 152 40" buttonText="Push Config to Ambika"
+              connectedEdges="0" needsCallback="0" radioGroupId="0"/>
+  <TEXTBUTTON name="Pull Multi Button" id="de1ac7eb43a3a1a5" memberName="pullMultiButton"
+              virtualName="" explicitFocusOrder="0" pos="72 152 152 40" buttonText="Pull"
               connectedEdges="0" needsCallback="0" radioGroupId="0"/>
 </JUCER_COMPONENT>
 

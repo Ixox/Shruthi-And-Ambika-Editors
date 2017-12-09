@@ -33,11 +33,13 @@ public:
     void requestSequencerTransfer() override;
     String getSynthName() override;
     void sendSequencerToSynth(uint8* sequencer);
+    void sendPatchToSynth() override;
 
     void setStateParamSpecific(XmlElement* xmlState) override;
     void getStateParamSpecific(XmlElement* xmlState) override;
     void choseNewMidiDevice() override;
     uint8* getSequencerData() override { return (uint8*)&steps; }
+    void setSequencerData(uint8* seq);
     void setFilterType(int ft) override;
     void setFilterTypeUI(FilterTypeUI* ftUI) override;
 

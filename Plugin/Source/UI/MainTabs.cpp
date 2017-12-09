@@ -120,8 +120,8 @@ MainTabs::MainTabs ()
     deviceButton->setColour (TextButton::buttonOnColourId, Colours::aliceblue);
 
     addAndMakeVisible (versionButton = new HyperlinkButton (TRANS("v?.?"),
-                                                            URL ("https://github.com/Ixox/")));
-    versionButton->setTooltip (TRANS("https://github.com/Ixox/"));
+                                                            URL ("https://github.com/Ixox/Shruthi-And-Ambika-Editors")));
+    versionButton->setTooltip (TRANS("https://github.com/Ixox/Shruthi-And-Ambika-Editors"));
     versionButton->setButtonText (TRANS("v?.?"));
     versionButton->setColour (HyperlinkButton::textColourId, Colours::beige);
 
@@ -136,6 +136,26 @@ MainTabs::MainTabs ()
     tabbedComponent->setTabBackgroundColour(2, tabBackground);
     tabbedComponent->setTabBackgroundColour(3, tabBackground);
 
+
+    addAndMakeVisible(partCombo = new ComboBox("Current Part"));
+    partCombo->setTooltip("Part");
+    partCombo->setEditableText(false);
+    partCombo->setJustificationType(Justification::centred);
+    partCombo->setColour(ComboBox::textColourId, Colours::whitesmoke);
+    partCombo->addItem("1", 1);
+    partCombo->addItem("2", 2);
+    partCombo->addItem("3", 3);
+    partCombo->addItem("4", 4);
+    partCombo->addItem("5", 5);
+    partCombo->addItem("6", 6);
+    partCombo->addListener(this);
+
+    addAndMakeVisible(partComboLabel = new Label("Current Part Label", "Part"));
+    partComboLabel->setJustificationType(Justification::centredRight);
+
+    addAndMakeVisible(midiChannelLabel = new Label("Midi Channel Label", "Midi"));
+    midiChannelLabel->setJustificationType(Justification::centredRight);
+
 #endif
 #ifdef SHRUTHI
     deviceButton->setButtonText("Midi");
@@ -143,7 +163,6 @@ MainTabs::MainTabs ()
 
     presetNameLabel->setColour(Label::textColourId, findColour(ComboBox::textColourId));
     midiChannelCombo->setColour(ComboBox::textColourId, Colours::whitesmoke);
-	midiChannelCombo->setSelectedId(1);
 	versionButton->setButtonText(String("v") + ProjectInfo::versionString);
     //[/UserPreSize]
 
@@ -156,9 +175,6 @@ MainTabs::MainTabs ()
     panelSequencer = ((PanelSequencer*)tabbedComponent->getTabContentComponent(2));
 #ifdef AMBIKA
     panelMulti = ((PanelMulti*)tabbedComponent->getTabContentComponent(3));
-    // Disable all button
-    panelMulti->setMultiDataUsed(true);
-    panelMulti->setMultiDataUsed(false);
 #endif
 
     // SET null !
@@ -192,6 +208,7 @@ void MainTabs::paint (Graphics& g)
     g.fillAll (Colour (0xff061723));
 
     //[UserPaint] Add your own custom painting code here..
+    settingsListener->setSelectedTab(tabbedComponent->getCurrentTabIndex());
     //[/UserPaint]
 }
 
@@ -267,7 +284,6 @@ void MainTabs::labelTextChanged (Label* labelThatHasChanged)
 		if (audioProcessorCommon) {
             audioProcessorCommon->setPresetName(presetNameLabel->getText());
 		}
-
         //[/UserLabelCode_presetNameLabel]
     }
 
@@ -344,9 +360,9 @@ void MainTabs::buildParameters(AudioProcessor *audioProcessor) {
 void MainTabs::updateUI(std::unordered_set<String> &paramSet) {
 
     if (paramSet.find("_Settings") != paramSet.end()) {
-        midiChannelCombo->setSelectedId(settingsListener->getMidiChannel());
+        midiChannelCombo->setSelectedId(settingsListener->getMidiChannel(), dontSendNotification);
         if (settingsListener->needsPart()) {
-            partCombo->setSelectedId(settingsListener->getPart());
+            partCombo->setSelectedId(settingsListener->getPart(), dontSendNotification);
         }
     }
 
@@ -365,37 +381,10 @@ void MainTabs::setPresetNamePtr(char* presetNamePtr) {
 	this->presetNamePtr = presetNamePtr;
 }
 
-void MainTabs::setMidiOutBuffer(MidiBuffer *midiOutBuffer) {
-	this->midiOutBuffer = midiOutBuffer;
-}
-
 void MainTabs::setMISettingsListener(MISettingsListener* sl) {
     settingsListener = sl;
-
-    if (settingsListener->needsPart()) {
-        addAndMakeVisible(partCombo = new ComboBox("Current Part"));
-        partCombo->setTooltip("Part");
-        partCombo->setEditableText(false);
-        partCombo->setJustificationType(Justification::centred);
-        partCombo->setColour(ComboBox::textColourId, Colours::whitesmoke);
-        partCombo->addItem("1", 1);
-        partCombo->addItem("2", 2);
-        partCombo->addItem("3", 3);
-        partCombo->addItem("4", 4);
-        partCombo->addItem("5", 5);
-        partCombo->addItem("6", 6);
-        partCombo->setSelectedId(1);
-        partCombo->addListener(this);
-
-        addAndMakeVisible(partComboLabel = new Label("Current Part Label", "Part"));
-        partComboLabel->setJustificationType(Justification::centredRight);
-
-        addAndMakeVisible(midiChannelLabel = new Label("Midi Channel Label", "Midi"));
-        midiChannelLabel->setJustificationType(Justification::centredRight);
-
-        midiChannelCombo->setEnabled(false);
-    }
-
+    
+    tabbedComponent->setCurrentTabIndex(sl->getSelectedTab());
     if (!settingsListener->needsPresetName()) {
         presetNameLabel->setVisible(false);
     }

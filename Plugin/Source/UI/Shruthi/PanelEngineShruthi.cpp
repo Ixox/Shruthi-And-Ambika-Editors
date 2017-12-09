@@ -798,17 +798,12 @@ void PanelEngine::buttonClicked(Button* buttonThatWasClicked)
                 ". Select the midi channel (1-16) of the shruthi                \n"
                 "   you want to talk to.");
 
-            const void* str = "If you like and use this Editor, please pay for it (10€), thanks";
+            const void* str = "If you use this Shruthi Editor, please pay for it (10€), thanks";
             HyperlinkButton paypal(String::createStringFromData(str, 94),
                 URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4S6JPKATW2AC4"));
             paypal.setButtonText("Pay Now");
             paypal.setSize(400, 45);
             midiWindow.addCustomComponent(&paypal);
-
-            //HyperlinkButton lastRelease("Click here to check the latest release: ", URL("https://github.com/Ixox/"));
-            //lastRelease.setButtonText("Github repository");
-            //lastRelease.setSize(400, 25);
-            //midiWindow.addCustomComponent(&lastRelease);
 
             midiWindow.addButton("I understand", 1);
             midiWindow.runModalLoop();

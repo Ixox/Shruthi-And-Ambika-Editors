@@ -58,7 +58,7 @@ const char* modiferSourceAdditionalNames[] = { "= 128", "= 64", "= 32", "= 16", 
 
 // 27
 const char* matrixDestNames[] = {
-"Osc1 Param","Osc2 PAram", "Osc1 Pitc", "Osc2 Pitch","Osc1&2 Pitch","Fine pitch", "Mix balance",
+"Osc1 Param","Osc2 Param", "Osc1 Pitc", "Osc2 Pitch","Osc1&2 Pitch","Fine pitch", "Mix balance",
 "Cross mod","Noise","Sub Osc", "Fuzz","Crush", "Filter Cutoff","Filter Res", "Attack", 
 "Devay","Release", "Voice Lfo","VCA Gain", nullptr
 };
@@ -298,7 +298,6 @@ PanelModulation::PanelModulation ()
 
 
     //[Constructor] You can add your own custom stuff here..
-	eventsToAdd = nullptr;
     lfoButton[0]->setToggleState(true, sendNotification);
     envButton[0]->setToggleState(true, sendNotification);
     //[/Constructor]
@@ -363,7 +362,6 @@ void PanelModulation::resized()
     //[UserResized] Add your own custom resize handling here..
 
     }
-
     Rectangle<int> mainBounds = getLocalBounds();
 
     matrixGroup->setBounds(mainBounds.removeFromLeft(mainBounds.getWidth() * .4f).reduced(3));
@@ -408,7 +406,6 @@ void PanelModulation::resized()
         operatorOut[r]->setBounds(rowBounds.reduced(10, rowBounds.getHeight() / 2 - 10));
     }
 
-
     Rectangle<int> lfoGroupBounds = lfoGroup->getBounds();
     Rectangle<int> lfoButtonsBounds = lfoGroupBounds.removeFromTop(25);
     lfoButtonsBounds.removeFromLeft(20);
@@ -422,7 +419,6 @@ void PanelModulation::resized()
         lfoEnvTrigger[l]->setBounds(triggerBounds.removeFromTop(20).reduced(10, 0));
         triggerBounds.removeFromTop(10);
     }
-
     for (int l = 0; l < NUMBER_OF_LFO_ENV; l++) {
         Rectangle<int> thisLfoBounds = lfoGroupBounds;
 
@@ -437,6 +433,7 @@ void PanelModulation::resized()
 
     }
 
+
     Rectangle<int> envGroupBounds = envGroup->getBounds();
     Rectangle<int> envButtonsBounds = envGroupBounds.removeFromTop(25);
     envButtonsBounds.removeFromLeft(20);
@@ -447,7 +444,6 @@ void PanelModulation::resized()
     for (int l = 0; l < NUMBER_OF_LFO_ENV; l++) {
         enveloppe[l]->setBounds(envGroupBounds);
     }
-
 
     Rectangle<int> lfoVoiceBounds = lfoVoiceGroup->getBounds();
     lfoVoiceBounds.removeFromTop(20);
@@ -545,7 +541,7 @@ void PanelModulation::buildParameters() {
     }
 
 	// Let listen to enveloppe
-    for (int e = 0; e < 3; e++) {
+    for (int e = 0; e < NUMBER_OF_LFO_ENV; e++) {
     	enveloppe[e]->addListener((EnveloppeListener*)this);
     }
 

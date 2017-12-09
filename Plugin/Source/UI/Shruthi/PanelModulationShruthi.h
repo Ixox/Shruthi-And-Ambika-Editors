@@ -134,8 +134,6 @@ private:
     ScopedPointer<ComboBox> operatorSource2[NUMBER_OF_OPERATORS];
     ScopedPointer<ComboBox> operatorOut[NUMBER_OF_OPERATORS];
 
-
-	MidiBuffer* eventsToAdd;
     //[/UserVariables]
 
     //==============================================================================

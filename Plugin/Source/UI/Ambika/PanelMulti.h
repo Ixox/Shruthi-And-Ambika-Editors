@@ -78,7 +78,7 @@ public:
     void setSettingsListener(MISettingsListener* misl) { settingsListener = misl; }
     bool isMultiDataUsed() override;
     void setMultiDataUsed(bool mdu) override ;
-
+    void requestMultiDataFromAmbika();
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -121,6 +121,7 @@ private:
     ScopedPointer<ToggleButton> useMultiButton;
     ScopedPointer<Label> useMultiLabel;
     ScopedPointer<TextButton> pushMultiButton;
+    ScopedPointer<TextButton> pullMultiButton;
 
 
     //==============================================================================

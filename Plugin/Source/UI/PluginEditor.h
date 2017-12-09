@@ -43,9 +43,8 @@ public:
 	void timerCallback();
 	void updateUIWith(std::unordered_set<String> &paramSet);
 	void removeParamToUpdateUI(String paramName);
-	void setMidiOutBuffer(MidiBuffer *midiOutBuffer);
 	void setPresetName(String presetName);
-
+    
 private:
 	bool uiOutOfSync;
 	MainTabs * mainTabs;

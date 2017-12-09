@@ -77,31 +77,27 @@ void MidifiedFloatParameter::setUseThisCC(int cc) {
 void MidifiedFloatParameter::sendCC(MidiBuffer& midiBuffer, const int midiChannel) {
     double time = Time::getMillisecondCounterHiRes() * .001;
 
-    int ccValue = (int)(((value - getMin()) * 128.0f) / (getMax() - getMin() + 1.0f) + 1.0f);
-    // DBG("SEND CC VALUE : " << ccValue);
+//    int ccValue = (int)(((value - getMin()) * 128.0f) / (getMax() - getMin() + 1.0f) + 1.0f);
+    int ccValue = (int)(((value - getMin()) * 128.0f) / (getMax() - getMin() + 1.0f));
+    DBG("SEND CC VALUE : " << ccValue);
     MidiMessage byte1 = MidiMessage::controllerEvent(midiChannel, useThisCCInteadOfNRPN, ccValue);
     byte1.setTimeStamp(time);
     midiBuffer.addEvent(byte1, 512);
 }
 
 void MidifiedFloatParameter::addNrpn(MidiBuffer& midiBuffer, const int midiChannel) {
-    // DBG("NRPN SENT : " << getNrpnParamMSB() << " : " << getNrpnParamLSB() << " value : " << getNrpnValueMSB() << " : " << getNrpnValueLSB());
-	double time = Time::getMillisecondCounterHiRes() * .001;
+    DBG("NRPN SENT : " << getNrpnParamMSB() << " : " << getNrpnParamLSB() << " value : " << getNrpnValueMSB() << " : " << getNrpnValueLSB());
     MidiMessage byte1 = MidiMessage::controllerEvent(midiChannel, 99, getNrpnParamMSB());
-    byte1.setTimeStamp(time);
-    midiBuffer.addEvent(byte1, 512);
+    midiBuffer.addEvent(byte1, 1);
     
     MidiMessage byte2 = MidiMessage::controllerEvent(midiChannel, 98, getNrpnParamLSB());
-	byte2.setTimeStamp(time);
-	midiBuffer.addEvent(byte2, 512);
+	midiBuffer.addEvent(byte2, 1);
 
     MidiMessage byte3 = MidiMessage::controllerEvent(midiChannel, 6, getNrpnValueMSB());
-    byte3.setTimeStamp(time);
-    midiBuffer.addEvent(byte3, 512);
+    midiBuffer.addEvent(byte3, 1);
 
 	MidiMessage byte4 = MidiMessage::controllerEvent(midiChannel, 38, getNrpnValueLSB());
-	byte4.setTimeStamp(time);
-	midiBuffer.addEvent(byte4, 512);
+	midiBuffer.addEvent(byte4, 1);
 }
 
 

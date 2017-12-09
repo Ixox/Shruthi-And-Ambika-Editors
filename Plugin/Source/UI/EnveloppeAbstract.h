@@ -27,8 +27,8 @@
 namespace juce { class MouseEvent; }
 
 #define CIRCLE_RAY 5
-#define MARGIN_VERTICAL 8
-#define MARGIN_HORIZONTAL 8
+#define MARGIN_VERTICAL 12
+#define MARGIN_HORIZONTAL 12
 
 #define RIGHT_TEXT_SIZE  120
 
@@ -49,12 +49,12 @@ public:
 	virtual void resized();
 	void updatePointPositions();
 	void setXMax(float x) { xMax = x; }
-	void mouseMove(const MouseEvent &event) override;
     virtual bool mouseMove_hook(const MouseEvent &event) { return false; };
+    void mouseMove(const MouseEvent &event) override;
     void mouseDrag(const MouseEvent &event) override;
 	void mouseDown(const MouseEvent &event) override;
 	void mouseUp(const MouseEvent &event) override;
-	void mouseExit(const MouseEvent &event) override;
+    void mouseExit(const MouseEvent &event) override;
     virtual void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override {};
 
     // Can be implemented to deal with point value modification

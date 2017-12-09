@@ -28,7 +28,8 @@ AudioProcessorEditorCommon::AudioProcessorEditorCommon(AudioProcessorCommon* own
     setResizable(true, true);
     this->ownerFilter = ownerFilter;
 	addAndMakeVisible(mainTabs = new MainTabs());
-    mainTabs->setMISettingsListener(dynamic_cast<MISettingsListener*>(ownerFilter));
+    MISettingsListener* misl = dynamic_cast<MISettingsListener*>(ownerFilter);
+    mainTabs->setMISettingsListener(misl);
 	mainTabs->buildParameters(ownerFilter);
 
 	// This is where our plugin's editor size is set.
@@ -83,12 +84,8 @@ void AudioProcessorEditorCommon::timerCallback() {
 }
 
 
-void AudioProcessorEditorCommon::setMidiOutBuffer(MidiBuffer *midiOutBuffer) {
-	mainTabs->setMidiOutBuffer(midiOutBuffer);
-}
-
-
 
 void AudioProcessorEditorCommon::setPresetName(String presetName) {
 	mainTabs->setPresetName(presetName);
 }
+

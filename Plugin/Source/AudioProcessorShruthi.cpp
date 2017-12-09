@@ -443,7 +443,7 @@ void AudioProcessorShruthi::encodeSysexPatch(uint8* patch) {
         MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
 
         patch[b] = midifiedFP->getRealValue();
-        uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
+        // uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
     }
 
     // 68 - 75 : preset name
@@ -544,7 +544,7 @@ void AudioProcessorShruthi::decodeSysexPatch(const uint8* patch) {
     if (!canReceiveSysexPatch) {
         return;
     }
-    canReceiveSysexPatch = true;
+    canReceiveSysexPatch = false;
 
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
     MidifiedFloatParameter* midifiedFP;
@@ -689,13 +689,18 @@ void AudioProcessorShruthi::requestSequencerTransfer() {
     canReceiveSysexSequencer = true;
 }
 
+void AudioProcessorShruthi::setSequencerData(uint8* sequencer) {
+    for (int s = 0; s < 16; s++) {
+        steps[s].data_[0] = sequencer[s * 2];
+        steps[s].data_[1] = sequencer[s * 2 + 1];
+    }
+}
+
+
 void AudioProcessorShruthi::sendSequencerToSynth(uint8* sequencer) {
 
     if (sequencer != nullptr) {
-        for (int s = 0; s < 16; s++) {
-            steps[s].data_[0] = sequencer[s * 2];
-            steps[s].data_[1] = sequencer[s * 2 + 1];
-        }
+        setSequencerData(sequencer);
     }
 
     // SEND SYSEX
@@ -730,7 +735,7 @@ void AudioProcessorShruthi::decodeSysexSequencer(const uint8* sysexSteps) {
     if (!canReceiveSysexSequencer) {
         return;
     }
-    canReceiveSysexSequencer = true;
+    canReceiveSysexSequencer = false;
 
     DBG("YEAH NEW SHRUTHI SEQUENCER!!!");
     for (int b = 0; b < 16; b++) {
@@ -745,9 +750,6 @@ void AudioProcessorShruthi::decodeSysexSequencer(const uint8* sysexSteps) {
 
 
 void AudioProcessorShruthi::setStateParamSpecific(XmlElement* xmlState) {
-    currentMidiChannel = xmlState->getIntAttribute("CurrentMidiChannel", 1);
-    settingsChangedForUI();
-
     int filterType = xmlState->getIntAttribute("FilterType");
     if (audioProcessorEditor != nullptr) {
         filterTypeUI->setFitlerType(filterType);
@@ -769,7 +771,6 @@ void AudioProcessorShruthi::setStateParamSpecific(XmlElement* xmlState) {
 }
 
 void AudioProcessorShruthi::getStateParamSpecific(XmlElement* xml) {
-    xml->setAttribute("CurrentMidiChannel", currentMidiChannel);
 
     // If shruthi sequencer UI is open, let's use latest data
     if (sequencerUI != nullptr) {
@@ -801,6 +802,37 @@ void AudioProcessorShruthi::setFilterType(int ft) {
 
 void AudioProcessorShruthi::setFilterTypeUI(FilterTypeUI* ftUI) {
     filterTypeUI = ftUI;
+}
+
+void AudioProcessorShruthi::sendPatchToSynth() {
+
+    // SEND SYSEX
+    DBG(" SEND SYSEX --------------------------");
+    uint8 sysexMessage[256];
+    uint8 patch[92];
+
+    encodeSysexPatch(patch);
+
+    uint8 startSysex[7] = { 0x00, 0x21, 0x02, // (Manufacturer ID for Mutable Instruments)
+        0x00,  0x02, // (Product ID for Shruthi)
+        0x01, // Command to send patch
+        0x00 // // No argument
+    };
+    memcpy(sysexMessage, startSysex, 7);
+    int index = 7;
+    int checkSum = 0;
+
+    for (int s = 0; s < 92; s++) {
+        sysexMessage[index++] = patch[s] >> 4;
+        sysexMessage[index++] = patch[s] & 0xf;
+
+        checkSum = (checkSum + patch[s]) % 256;
+    }
+
+    sysexMessage[index++] = checkSum >> 4;
+    sysexMessage[index++] = checkSum & 0xf;
+
+    sendSysex(MidiMessage::createSysExMessage(sysexMessage, index));
 }
 
 

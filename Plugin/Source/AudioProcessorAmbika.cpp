@@ -32,9 +32,6 @@ AudioProcessorAmbika::AudioProcessorAmbika()
     canReceiveSysexPartData = false;
 }
 
-
-
-
 void AudioProcessorAmbika::initAllParameters() {
     int nrpmParam;
     // ================== OSC1 ===========================================================================
@@ -377,8 +374,18 @@ void AudioProcessorAmbika::initAllParameters() {
 }
 
 
-void AudioProcessorAmbika::encodeSysexPatch(uint8* message) {
+void AudioProcessorAmbika::encodeSysexPatch(uint8* patch) {
+    const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
 
+    for (int b = 0; b < 112; b++) {
+        int index = nrpmIndex[b];
+        if (index == -1) {
+            DBG("nrpmIndex[" << b << "] IS MISSING !!!!!!!");
+            continue;
+        }
+        MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
+        patch[b] = midifiedFP->getRealValue();
+    }
 }
 
 
@@ -388,7 +395,7 @@ void AudioProcessorAmbika::decodeSysexPatch(const uint8* patch) {
     if (!canReceiveSysexPatch) {
         return;
     }
-    canReceiveSysexPatch = true;
+    canReceiveSysexPatch = false;
 
     const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
 
@@ -401,9 +408,6 @@ void AudioProcessorAmbika::decodeSysexPatch(const uint8* patch) {
         uint8 byte = patch[b * 2] * 0x10 + patch[b * 2 + 1];
         MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
         midifiedFP->setValueFromNrpn((int)byte);
-        if (b >= 112 && b <= 124) {
-            DBG("SYSEX DECODE Name '" << midifiedFP->getName() << "' nrpn "<< b << "  (index : " << index << ") byte : " << byte);
-        }
     }
 
     // REDRAW UI   
@@ -452,6 +456,7 @@ char AudioProcessorAmbika::sysexMachineCode() {
 
 void AudioProcessorAmbika::requestPatchTransfer() {
     char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x11, 0x00, 0x00, 0x00 };
+    DBG("REQUEST PART " << currentPart);
     command[6] = currentPart;
     canReceiveSysexPatch = true;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
@@ -494,12 +499,17 @@ String AudioProcessorAmbika::getSynthName() {
     return "Ambika";
 }
 
+void AudioProcessorAmbika::setSequencerData(uint8* seq) {
+    for (int s = 0; s < 64; s++) {
+        ((uint8*)&sequencer)[s] = seq[s];
+    }
+}
+
+
 void AudioProcessorAmbika::sendSequencerToSynth(uint8* seq) {
 
     if (seq != nullptr) {
-        for (int s = 0; s < 64; s++) {
-            ((uint8*)&sequencer)[s] = seq[s];
-        }
+        setSequencerData(seq);
     }
 
     uint8* buffer = (uint8*) &sequencer;
@@ -507,8 +517,8 @@ void AudioProcessorAmbika::sendSequencerToSynth(uint8* seq) {
         MidifiedFloatParameter mfp("Seq", 112 + 16 + s, 1, 0, 255, 0);
         mfp.setRealValueNoNotification((float) (buffer[s]));
         mfp.addNrpn(midiOutBuffer, currentMidiChannel);
+        flushMidiOut();
     }
-    flushMidiOut();
 }
 
 
@@ -528,11 +538,15 @@ void AudioProcessorAmbika::setRealTimeUpdate(int param, int value) {
         flushMidiOut();
     }
     ((uint8*)&sequencer)[param] = value;
-    DBG("New seq value: " << param << " value : " << value);
+//     DBG("AudioPRocessorAmbika setRealTimeUpdate : New seq value: " << param << " value : " << value);
 }
 
 
 void AudioProcessorAmbika::decodeSysexSequencer(const uint8* steps) {
+    if (!canReceiveSysexSequencer) {
+        return;
+    }
+    canReceiveSysexSequencer = false;
     // In ambika there are the 2 sequences first (32 bits each)
     for (int p = 0; p < 16; p++) {
         DBG("Bizarre " << p << " : " << (int)((int)steps[p * 2] * 16 + steps[p * 2 + 1]));
@@ -567,11 +581,15 @@ void AudioProcessorAmbika::sendMultiDataToAmbika(MultiData* md) {
     if (!isMultiDataUsed) return;
 
     uint8 sysexMessage[256];
+    uint8* patch;
+
+    if (md != nullptr) {
+        setMultiData(md);
+    }
+
+    patch = (uint8*)&multiData;
 
     DBG("AudioProcessorAmbika::sendMultiData");
-    for (int k = 0; k < 8; k++) {
-        DBG("Knob : " << (k + 1) << " part " << (md->knob_assignment[k].part) << " param " << (md->knob_assignment[k].parameter) << " instance " << (md->knob_assignment[k].instance));
-    }
 
     uint8 startSysex[7] = { 0x00, 0x21, 0x02, // (Manufacturer ID for Mutable Instruments)
         0x00,  0x04, // (Product ID for Ambika)
@@ -581,20 +599,7 @@ void AudioProcessorAmbika::sendMultiDataToAmbika(MultiData* md) {
     memcpy(sysexMessage, startSysex, 7);
     int index = 7;
     int checkSum = 0;
-    uint8* patch;
-    if (md != nullptr) {
-        patch = (uint8*)md;
-    }
-    else {
-        patch = (uint8*)&multiData;
-    }
-    if (isMultiDataUsed) {
-        uint8* myMultiData = (uint8*)&multiData;
-        for (int s = 0; s < 56; s++) {
-            // Copy to this object
-            myMultiData[s] = patch[s];
-        }
-    }
+
     for (int s = 0; s < 56; s++) {
         sysexMessage[index++] = patch[s] >> 4;
         sysexMessage[index++] = patch[s] & 0xf;
@@ -607,10 +612,7 @@ void AudioProcessorAmbika::sendMultiDataToAmbika(MultiData* md) {
 
     sendSysex(MidiMessage::createSysExMessage(sysexMessage, index));
 
-    flushMidiOut();
-
-    updateMidiChannelFromPart(md);
-
+    updateMidiChannelFromPart(md != nullptr ? md : &multiData);
 };
 
 void AudioProcessorAmbika::requestMultiDataTransfer() {
@@ -621,33 +623,7 @@ void AudioProcessorAmbika::requestMultiDataTransfer() {
 
 void AudioProcessorAmbika::setStateParamSpecific(XmlElement* xmlState) {
 
-    XmlElement* xmlMD = xmlState->getChildByName("MultiData");
-    if (xmlMD != nullptr) {
-        isMultiDataUsed = true;
-        uint8* md = (uint8*)&multiData;
-        // loadt MultiData
-        for (int k = 0; k < 56; k++) {
-            md[k] = xmlMD->getIntAttribute("MD_uint8_" + String(k));
-        }
-        updateMidiChannelFromPart(&multiData);
-
-        if (audioProcessorEditor != nullptr) {
-            ambikaMultiDataUI->setMultiDataUsed(true);
-            const MessageManagerLock mmLock;
-            ambikaMultiDataUI->setMultiData(&multiData);
-        }
-        sendMultiDataToAmbika((MultiData*) nullptr);
-    }
-    else {
-        isMultiDataUsed = false;
-        if (audioProcessorEditor != nullptr) {
-            ambikaMultiDataUI->setMultiDataUsed(false);
-        }
-    }
-
-    partChanged(xmlState->getIntAttribute("CurrentPart", 1));
-    settingsChangedForUI();
-
+    // Sequencer
     if (xmlState->hasAttribute("SequencerStep0")) {
         uint8* seq = (uint8*)&sequencer;
         for (int s = 0; s < 16; s++) {
@@ -668,12 +644,40 @@ void AudioProcessorAmbika::setStateParamSpecific(XmlElement* xmlState) {
         sendSequencerToSynth((uint8*)nullptr);
     }
 
+    // Multi Data
+    XmlElement* xmlMD = xmlState->getChildByName("MultiData");
+    if (xmlMD != nullptr) {
+        isMultiDataUsed = true;
+        uint8* md = (uint8*)&multiData;
+        // loadt MultiData
+        for (int k = 0; k < 56; k++) {
+            md[k] = xmlMD->getIntAttribute("MD_uint8_" + String(k));
+        }
+        updateMidiChannelFromPart(&multiData);
+
+        if (audioProcessorEditor != nullptr) {
+            ambikaMultiDataUI->setMultiDataUsed(true);
+            const MessageManagerLock mmLock;
+            ambikaMultiDataUI->setMultiData(&multiData);
+        }
+        sendMultiDataToAmbika((MultiData*) nullptr);
+    }
+    else {
+        isMultiDataUsed = false;
+    }
+    if (audioProcessorEditor != nullptr) {
+        ambikaMultiDataUI->setMultiDataUsed(isMultiDataUsed);
+    }
 }
 
 void AudioProcessorAmbika::getStateParamSpecific(XmlElement* xml) {
-    xml->setAttribute("CurrentPart", currentPart);
 
     if (isMultiDataUsed) {
+        // If UI update with latest version
+        if (audioProcessorEditor != nullptr) {
+            setMultiData(ambikaMultiDataUI->getMultiData());
+        }
+
         XmlElement* xmlMultiDataElement = new XmlElement("MultiData");
 
         // update MultiData
@@ -705,6 +709,64 @@ void AudioProcessorAmbika::choseNewMidiDevice() {
 
 void AudioProcessorAmbika::setMultiDataUsed(bool mdu) {
     isMultiDataUsed = mdu;
+}
+
+void AudioProcessorAmbika::setMultiData(MultiData* md) {
+    uint8* source = (uint8*)md;
+    uint8* dest = (uint8*)&multiData;
+    // loadt MultiData
+    for (int k = 0; k < 56; k++) {
+        dest[k] = source[k];
+    }
+}
+
+void AudioProcessorAmbika::createEditorSpecific(AudioProcessorEditor* audioProcessorEditor) {
+    ambikaMultiDataUI->setMultiDataUsed(isMultiDataUsed);
+    if (isMultiDataUsed) {
+        ambikaMultiDataUI->setMultiData(&multiData);
+    }
+};
+
+void AudioProcessorAmbika::sendPatchToSynth() {
+
+    // SEND SYSEX
+    uint8 sysexMessage[256];
+    uint8 patch[112];
+
+    encodeSysexPatch(patch);
+
+    uint8 startSysex[7] = { 0x00, 0x21, 0x02, // (Manufacturer ID for Mutable Instruments)
+        0x00,  0x04, // (Product ID for Ambika)
+        0x01, // Command to send patch
+        currentPart // Send to CurrentPart !!!!
+    };
+
+    memcpy(sysexMessage, startSysex, 7);
+    int index = 7;
+    int checkSum = 0;
+
+    for (int s = 0; s < 112; s++) {
+        sysexMessage[index++] = patch[s] >> 4;
+        sysexMessage[index++] = patch[s] & 0xf;
+
+        checkSum = (checkSum + patch[s]) % 256;
+    }
+
+    sysexMessage[index++] = checkSum >> 4;
+    sysexMessage[index++] = checkSum & 0xf;
+
+    sendSysex(MidiMessage::createSysExMessage(sysexMessage, index));
+
+    // For Ambika we consider the 16 first params of PartData is part of the synth
+    // So we flush thos 16 params that have been read just before in AudioProcessorCommon
+    const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
+    for (int p = 112; p < 112 + 16; p++) {
+        int index = nrpmIndex[p];
+        MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[index];
+        midifiedFP->addNrpn(midiOutBuffer, currentMidiChannel);
+    }
+    flushMidiOut();
+
 }
 
 

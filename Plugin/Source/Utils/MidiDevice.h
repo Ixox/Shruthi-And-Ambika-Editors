@@ -81,7 +81,8 @@ private:
 	ApplicationProperties appProperties;
 	bool showErrorMEssage;
 	CriticalSection messageLock;
-	MidiInputCallbackList listeners;
+    CriticalSection midiLock;
+    MidiInputCallbackList listeners;
     int lastUsedDevice;
     int defaultDeviceNumber;
     struct OpenedDevice devices[NUMBER_OF_DEVICES];

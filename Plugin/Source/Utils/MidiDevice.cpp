@@ -45,7 +45,7 @@ MidiDevice::MidiDevice()
             devices[d].partUsed[p] = false;
         }
     }
-    lastUsedDevice = -1;
+    lastUsedDevice = NOT_FOUND;
 #ifdef AMBIKA
     synthName = "Ambika";
 #endif
@@ -62,7 +62,7 @@ MidiDevice::MidiDevice()
     appProperties.setStorageParameters(options);
 
 
-    defaultDeviceNumber = -1;
+    defaultDeviceNumber = NOT_FOUND;
     PropertiesFile* propertiesFile = appProperties.getCommonSettings(true);
     String fileName = propertiesFile->getFile().getFullPathName();
     DBG("PROPERTIES FULL PATH NAME : " + fileName);
@@ -70,7 +70,7 @@ MidiDevice::MidiDevice()
         String inputProp = propertiesFile->getValue(MIDI_LAST_INPUT_PROP);
         String outputProp = propertiesFile->getValue(MIDI_LAST_OUTPUT_PROP);
         if (inputProp.length() > 0 && outputProp.length() > 0) {
-            defaultDeviceNumber = openDevice(-1, propertiesFile->getValue(MIDI_LAST_INPUT_PROP), propertiesFile->getValue(MIDI_LAST_OUTPUT_PROP));
+            defaultDeviceNumber = openDevice(NOT_FOUND, propertiesFile->getValue(MIDI_LAST_INPUT_PROP), propertiesFile->getValue(MIDI_LAST_OUTPUT_PROP));
             if (defaultDeviceNumber >= 0) {
                 for (int p = 0; p < 6; p++) {
                     if (propertiesFile->containsKey(MIDI_LAST_FOR_PART_PROP + String(p))) {
@@ -132,7 +132,7 @@ int MidiDevice::openDevice(int deviceNumber, String deviceNameInput, String devi
     // Already exists
     if (newDeviceNumber != NOT_FOUND) {
         if (newDeviceNumber != deviceNumber) {
-            if (deviceNumber != -1) {
+            if (deviceNumber >= 0) {
                 closeDevice(deviceNumber, false);
             }
             devices[newDeviceNumber].numberOfUsage++;
@@ -190,7 +190,7 @@ int MidiDevice::openDevice(int deviceNumber, String deviceNameInput, String devi
     }
 
     // Let's close old device
-    if (deviceNumber != -1) {
+    if (deviceNumber >= 0) {
         closeDevice(deviceNumber, false);
     }
 
@@ -236,7 +236,7 @@ int MidiDevice::openChoseDeviceWindow(int deviceNumber) {
     int result = 0;
 
     // use lastUsedDevice if no current device
-    deviceNumber = deviceNumber == -1 ? lastUsedDevice : deviceNumber;
+    deviceNumber = deviceNumber < 0 ? lastUsedDevice : deviceNumber;
 
 	if (!myScopedTryLock.isLocked()) {
 		return result;
@@ -254,9 +254,9 @@ int MidiDevice::openChoseDeviceWindow(int deviceNumber) {
 	StringArray inputDevices = MidiInput::getDevices();
     inputDevices.insert(0, "<Select>");
 	midiWindow.addComboBox("From", inputDevices, "Input from your "+ synthName);
-    if (deviceNumber != -1) {
+    if (deviceNumber >= 0) {
         int currentInput = inputDevices.indexOf(devices[deviceNumber].deviceNameInput);
-        if (currentInput > -1) {
+        if (currentInput >= 0) {
             midiWindow.getComboBoxComponent("From")->setSelectedId(currentInput + 1);
         }
     }
@@ -264,9 +264,9 @@ int MidiDevice::openChoseDeviceWindow(int deviceNumber) {
 	StringArray outputDevices = MidiOutput::getDevices();
     outputDevices.insert(0, "<Select>");
 	midiWindow.addComboBox("To", outputDevices, "Output to your "+ synthName);
-    if (deviceNumber != -1) {
+    if (deviceNumber >= 0) {
         int currentOutput = outputDevices.indexOf(devices[deviceNumber].deviceNameOutput);
-        if (currentOutput > -1) {
+        if (currentOutput >= 0) {
             midiWindow.getComboBoxComponent("To")->setSelectedId(currentOutput + 1);
         }
     }
@@ -343,13 +343,13 @@ void MidiDevice::handlePartialSysexMessage(MidiInput *source, const uint8 *messa
 }
 
 MidiOutput* MidiDevice::getMidiOutput(int deviceNumber) {
-    if (deviceNumber != -1) {
+    if (deviceNumber >= 0) {
         return devices[deviceNumber].midiOutput;
     }
 }
  
 MidiInput* MidiDevice::getMidiInput(int deviceNumber) {
-    if (deviceNumber != -1) {
+    if (deviceNumber >= 0) {
         return devices[deviceNumber].midiInput;
     }
 }
@@ -373,6 +373,7 @@ int* MidiDevice::getMidiChannelForPart(int deviceNumber) {
 
 bool MidiDevice::sendBlockOfMessagesNow(int deviceNumber, MidiBuffer& midiBuffer) {
     if (deviceNumber >=0 && devices[deviceNumber].midiOutput != nullptr && devices[deviceNumber].midiInput != nullptr) {
+        const ScopedTryLock myScopedTryLock(midiLock);
         devices[deviceNumber].midiOutput->sendBlockOfMessagesNow(midiBuffer);
         return true;
     }

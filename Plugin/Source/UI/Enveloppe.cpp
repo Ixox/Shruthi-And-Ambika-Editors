@@ -56,14 +56,9 @@ Enveloppe::~Enveloppe()
 
 void Enveloppe::paint(Graphics& g)
 {
-    Rectangle<int> theseBounds = getBounds();
-    setBounds(theseBounds.reduced(10));
-    g.setOrigin(10, 15);
-
 	EnveloppeAbstract::paint(g);
 
-
-	static const String adsr[] = { "A", "D", "S", "R" };
+    static const String adsr[] = { "A", "D", "S", "R" };
 	for (int v = 0; v < 4; v++) {
 
 
@@ -89,7 +84,6 @@ void Enveloppe::paint(Graphics& g)
 			break;
 		}
 	}
-    setBounds(theseBounds);
 
 }
 

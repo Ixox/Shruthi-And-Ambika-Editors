@@ -26,6 +26,7 @@
 class AudioProcessorAmbika : AudioProcessorCommon {
 public:
     AudioProcessorAmbika();
+    void createEditorSpecific(AudioProcessorEditor* audioProcessorEditor);
     void initAllParameters();
     char sysexMachineCode() override;
     void decodeSysexPatch(const uint8* message) override;
@@ -37,7 +38,10 @@ public:
     void decodeMultiData(const uint8* message) override;
     String getSynthName() override;
     void sendSequencerToSynth(uint8* seq);
+    void sendPatchToSynth() override;
     uint8* getSequencerData() override { return (uint8*)&sequencer; }
+    void setSequencerData(uint8* seq);
+
     // MISettingsListener
     bool needsPart() override;
     bool needsPresetName() override;
@@ -47,6 +51,7 @@ public:
     void setAmbikaMultiDataUI(AmbikaMultiDataUI* amd) override { ambikaMultiDataUI = amd;  }
     void sendMultiDataToAmbika(MultiData* md) override;
     void setMultiDataUsed(bool mdu) override;
+    void setMultiData(MultiData* md) override;
 
     void requestMultiDataTransfer() override;
 

@@ -285,7 +285,7 @@ PanelSequencer::~PanelSequencer()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
     updateSequencerSteps();
-    canSendSequencer->sendSequencerToSynth((uint8*)sequencerSettings.steps);
+    canSendSequencer->setSequencerData((uint8*)sequencerSettings.steps);
     //[/Destructor_pre]
 
     tempoGroup = nullptr;

@@ -118,7 +118,7 @@ PanelEngine::PanelEngine ()
                            Image(), 1.000f, Colour (0x50000000),
                            Image(), 1.000f, Colour (0x00000000));
     addAndMakeVisible (tuningGroup = new GroupComponent ("Tuning Group",
-                                                         TRANS("Tuning Part")));
+                                                         TRANS("Part tuning")));
 
     addAndMakeVisible (infoGroup = new GroupComponent ("Info Group",
                                                        TRANS("Info")));
@@ -443,7 +443,7 @@ PanelEngine::PanelEngine ()
     tuningRaga->setSelectedId(1);
     tuningRaga->addListener(this);
 
-    // Legato 
+    // Legato
     addAndMakeVisible(tuningLegato = new TextButton("Tuning legato"));
     tuningLegato->setClickingTogglesState(true);
     tuningLegato->setButtonText("Off");
@@ -504,23 +504,6 @@ void PanelEngine::paint (Graphics& g)
     //[/UserPrePaint]
 
     {
-        int x = 2, y = proportionOfHeight (0.5000f), width = getWidth() - 4, height = proportionOfHeight (0.2000f);
-        Colour fillColour1 = Colour (0xff173e5a), fillColour2 = Colour (0xff1f5073);
-        //[UserPaintCustomArguments] Customize the painting arguments here..
-        fillColour1 = findColour(PopupMenu::backgroundColourId);
-        fillColour2 = findColour(PopupMenu::backgroundColourId).darker();
-        //[/UserPaintCustomArguments]
-        g.setGradientFill (ColourGradient (fillColour1,
-                                       static_cast<float> (proportionOfWidth (0.5000f)) - 2.0f + x,
-                                       static_cast<float> (proportionOfHeight (0.5000f)) - static_cast<float> (proportionOfHeight (0.5000f)) + y,
-                                       fillColour2,
-                                       static_cast<float> (proportionOfWidth (0.5000f)) - 2.0f + x,
-                                       static_cast<float> (proportionOfHeight (0.7000f)) - static_cast<float> (proportionOfHeight (0.5000f)) + y,
-                                       false));
-        g.fillRect (x, y, width, height);
-    }
-
-    {
         int x = 2, y = proportionOfHeight (0.6900f), width = getWidth() - 4, height = proportionOfHeight (0.2100f);
         Colour fillColour1 = Colour (0xff1f5073), fillColour2 = Colour (0xff173e5a);
         //[UserPaintCustomArguments] Customize the painting arguments here..
@@ -533,6 +516,23 @@ void PanelEngine::paint (Graphics& g)
                                        fillColour2,
                                        static_cast<float> (proportionOfWidth (0.5000f)) - 2.0f + x,
                                        static_cast<float> (proportionOfHeight (0.9000f)) - static_cast<float> (proportionOfHeight (0.6900f)) + y,
+                                       false));
+        g.fillRect (x, y, width, height);
+    }
+
+    {
+        int x = 2, y = proportionOfHeight (0.5000f), width = getWidth() - 4, height = proportionOfHeight (0.2000f);
+        Colour fillColour1 = Colour (0xff173e5a), fillColour2 = Colour (0xff1f5073);
+        //[UserPaintCustomArguments] Customize the painting arguments here..
+        fillColour1 = findColour(PopupMenu::backgroundColourId);
+        fillColour2 = findColour(PopupMenu::backgroundColourId).darker();
+        //[/UserPaintCustomArguments]
+        g.setGradientFill (ColourGradient (fillColour1,
+                                       static_cast<float> (proportionOfWidth (0.5000f)) - 2.0f + x,
+                                       static_cast<float> (proportionOfHeight (0.5000f)) - static_cast<float> (proportionOfHeight (0.5000f)) + y,
+                                       fillColour2,
+                                       static_cast<float> (proportionOfWidth (0.5000f)) - 2.0f + x,
+                                       static_cast<float> (proportionOfHeight (0.7000f)) - static_cast<float> (proportionOfHeight (0.5000f)) + y,
                                        false));
         g.fillRect (x, y, width, height);
     }
@@ -704,7 +704,7 @@ void PanelEngine::resized()
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 
 
-void PanelEngine::sliderValueChanged(Slider* sliderThatWasMoved) 
+void PanelEngine::sliderValueChanged(Slider* sliderThatWasMoved)
 {
     sliderValueChanged(sliderThatWasMoved, true);
 }
@@ -763,17 +763,12 @@ void PanelEngine::buttonClicked(Button* buttonThatWasClicked, bool fromPluginUI)
                 ". Select the midi channel (1-16) of the Ambika part             \n"
                 "   you want to talk to.");
 
-            const void* str = "If you like and use this Editor, please pay for it (10€), thanks";
+            const void* str = "If you use this Ambika Editor, please pay for it (15€), thanks";
             HyperlinkButton paypal(String::createStringFromData(str, 94),
                 URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6LJNV844H68SY"));
             paypal.setButtonText("Pay Now");
             paypal.setSize(400, 45);
             midiWindow.addCustomComponent(&paypal);
-
-            //HyperlinkButton lastRelease("Click here to check the latest release: ", URL("https://github.com/Ixox/"));
-            //lastRelease.setButtonText("Github repository");
-            //lastRelease.setSize(400, 25);
-            //midiWindow.addCustomComponent(&lastRelease);
 
             midiWindow.addButton("I understand", 1);
             midiWindow.runModalLoop();
@@ -825,7 +820,7 @@ void PanelEngine::buildParameters() {
     updateButtonFromParameter(tuningLegato);
     updateSliderFromParameter(tuningPortamento);
     updateComboFromParameter(tuningPolyphonyMode);
-    
+
 
 }
 
@@ -871,9 +866,9 @@ BEGIN_JUCER_METADATA
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="1000"
                  initialHeight="710">
   <BACKGROUND backgroundColour="173e5a">
-    <RECT pos="2 50% 4M 20%" fill="linear: 50% 50%, 50% 70%, 0=ff173e5a, 1=ff1f5073"
-          hasStroke="0"/>
     <RECT pos="2 69% 4M 21%" fill="linear: 50% 70%, 50% 90%, 0=ff1f5073, 1=ff173e5a"
+          hasStroke="0"/>
+    <RECT pos="2 50% 4M 20%" fill="linear: 50% 50%, 50% 70%, 0=ff173e5a, 1=ff1f5073"
           hasStroke="0"/>
   </BACKGROUND>
   <GROUPCOMPONENT name="Osc1 Group" id="f2a0395148710745" memberName="osc1Group"
@@ -897,7 +892,7 @@ BEGIN_JUCER_METADATA
                opacityDown="1" colourDown="0"/>
   <GROUPCOMPONENT name="Tuning Group" id="26235bda1e7cecac" memberName="tuningGroup"
                   virtualName="" explicitFocusOrder="0" pos="1.699% 66.231% 96.249% 22.658%"
-                  title="Tuning Part"/>
+                  title="Part tuning"/>
   <GROUPCOMPONENT name="Info Group" id="a34cf8d753760e42" memberName="infoGroup"
                   virtualName="" explicitFocusOrder="0" pos="85.492% 44.444% 11.536% 19.172%"
                   title="Info"/>

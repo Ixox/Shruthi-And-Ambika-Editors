@@ -76,7 +76,6 @@ public:
 	void updateUI(std::unordered_set<String> &paramSet);
 	void setPresetName(String presetName);
 	void setPresetNamePtr(char* presetNamePtr);
-	void setMidiOutBuffer(MidiBuffer *midiOutBuffer);
 	MidifiedFloatParameter* getParameterFromName(String componentName);
     void setMISettingsListener(MISettingsListener* sl);
     //[/UserMethods]
@@ -98,7 +97,6 @@ private:
 #ifdef AMBIKA
     PanelMulti* panelMulti;
 #endif
-    MidiBuffer *midiOutBuffer;
 	char *presetNamePtr;
     MISettingsListener* settingsListener;
     ScopedPointer<Label> partComboLabel;

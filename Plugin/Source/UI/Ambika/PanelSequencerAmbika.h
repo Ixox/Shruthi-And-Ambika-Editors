@@ -98,7 +98,7 @@ public:
 
     // SequencerScoreListener
     void noteChanged(SequencerScore* sequencer, int step, int newNote);
-
+    void setRealTimeUpdate(int param, int value);
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -129,6 +129,7 @@ private:
     ScopedPointer<Slider> seq2Steps[NUMBER_OF_STEPS];
     ScopedPointer<SequencerScore> seqScore;
     ScopedPointer<TextButton> seqPullButton;
+    ScopedPointer<TextButton> seqPushButton;
     ScopedPointer<TextButton> seqRandomizeButton;
     CanSendSequencerClass* canSendSequencer;
 

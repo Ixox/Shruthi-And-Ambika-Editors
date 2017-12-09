@@ -201,9 +201,15 @@
         <CONFIGURATION name="Shruthi_w32" winWarningLevel="3" generateManifest="1" winArchitecture="Win32"
                        isDebug="0" optimisation="3" targetName="ShruthiEditor_w32" defines="SHRUTHI=1"
                        postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
+        <CONFIGURATION name="Ambika_x64" winWarningLevel="3" generateManifest="1" winArchitecture="x64"
+                       isDebug="0" optimisation="3" targetName="AmbikaEditor_x64" defines="AMBIKA=1&#10;"
+                       postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
         <CONFIGURATION name="Ambika_x64_DEBUG" winWarningLevel="3" generateManifest="1"
                        winArchitecture="x64" isDebug="1" optimisation="1" targetName="AmbikaEditorDebug_x64"
                        defines="AMBIKA=1&#10;" postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
+        <CONFIGURATION name="Ambika_w32" winWarningLevel="3" generateManifest="1" winArchitecture="Win32"
+                       isDebug="0" optimisation="3" targetName="AmbikaEditor_w32" defines="AMBIKA=1&#10;"
+                       postbuildCommand="copy &quot;$(TargetPath)&quot; G:\dev\ZIP\windows_0.9.2"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="JuceLibraryCode\modules"/>

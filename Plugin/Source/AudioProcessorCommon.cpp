@@ -46,7 +46,7 @@ AudioProcessorCommon::AudioProcessorCommon()
         for (int c = 0; c < 6; c++) {
             midiChannelForPart[c] = cfp[c];
         }
-        currentMidiChannel = midiChannelForPart[1];
+        currentMidiChannel = midiChannelForPart[currentPart - 1];
     }
 #endif
 
@@ -85,6 +85,9 @@ AudioProcessorCommon::AudioProcessorCommon()
     receivingMultiPart = false;
     canReceiveSysexPatch = false;
     canReceiveSysexSequencer = false;
+    canReceiveMultiPart = false;
+    muteMidiDuringInitialisation = false;
+    selectedTab = 0;
 }
 
 
@@ -211,17 +214,21 @@ void AudioProcessorCommon::editorClosed() {
 
 AudioProcessorEditor* AudioProcessorCommon::createEditor()
 {
+    // FALSE ::: TEST !!!
+    muteMidiDuringInitialisation = false;
 	audioProcessorEditor = new AudioProcessorEditorCommon(this);
-	audioProcessorEditor->setMidiOutBuffer(&midiOutBuffer);
 	audioProcessorEditor->setPresetName(presetName);
     if (editorWidth > 0 && editorHeight > 0) {
         audioProcessorEditor->setSize(editorWidth, editorHeight);
     }
+    sequencerUI->setSequencerData(getSequencerData());
+    createEditorSpecific(audioProcessorEditor);
+
     // Update Editor Channel and Part
     settingsChangedForUI();
 
-    sequencerUI->setSequencerData(getSequencerData());
-	return audioProcessorEditor;
+    muteMidiDuringInitialisation = false;
+    return audioProcessorEditor;
 }
 
 //==============================================================================
@@ -256,6 +263,13 @@ void AudioProcessorCommon::getStateInformation(MemoryBlock& destData)
         xml.setAttribute("MidiDeviceOutputName", midiDevice->getMidiOutputDeviceName(midiDeviceNumber));
     }
 
+    if (needsPart()) {
+        xml.setAttribute("CurrentPart", currentPart);
+    }
+    xml.setAttribute("MidiChannel", currentMidiChannel);
+
+
+
     // Different for Ambika and Shurthi
     getStateParamSpecific(&xml);
 
@@ -280,19 +294,41 @@ void AudioProcessorCommon::setStateInformation(const void* data, int sizeInBytes
 		}
 
 		if (xmlState->hasTagName(getSynthName() + "AppStatus")) {
-			const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
 
-			float value;
-			for (int p = 0; p < parameterSet.size(); p++) {
 
-				MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[p];
-				if (xmlState->hasAttribute(midifiedFP->getNameForXML())) {
-					value = (float)xmlState->getDoubleAttribute(midifiedFP->getNameForXML());
-					midifiedFP->setRealValueNoNotification(value);
-					DBG(String(p) << " '" << midifiedFP->getName() << "'  value " << (midifiedFP->getRealValue()));
-				}
-			}
+            // RED all params
+            const OwnedArray< AudioProcessorParameter >&parameterSet = getParameters();
+            float value;
+            for (int p = 0; p < parameterSet.size(); p++) {
+                MidifiedFloatParameter* midifiedFP = (MidifiedFloatParameter*)parameterSet[p];
+                if (xmlState->hasAttribute(midifiedFP->getNameForXML())) {
+                    value = (float)xmlState->getDoubleAttribute(midifiedFP->getNameForXML());
+                    midifiedFP->setRealValueNoNotification(value);
+                    DBG(String(p) << " '" << midifiedFP->getName() << "'  value " << (midifiedFP->getRealValue()));
+                }
+            }
 
+            // Reinit midiDevice
+            String midiDeviceInputName = xmlState->getStringAttribute("MidiDeviceInputName");
+            String midiDeviceOutputName = xmlState->getStringAttribute("MidiDeviceOutputName");
+            if (midiDeviceInputName.length() > 0 && midiDeviceOutputName.length() > 0) {
+                midiDeviceNumber = midiDevice->openDevice(midiDeviceNumber, midiDeviceInputName, midiDeviceOutputName);
+            }
+            // Midi and Part
+            if (xmlState->hasAttribute("CurrentPart")) {
+                currentPart = xmlState->getIntAttribute("CurrentPart", 1);
+            }
+            currentMidiChannel = xmlState->getIntAttribute("MidiChannel", 1);
+            settingsChangedForUI();
+                     
+            // Flush patch 
+            sendPatchToSynth();
+
+            // Different for Ambika and Shurthi
+            setStateParamSpecific(xmlState);
+
+
+            // UI
 
             if (xmlState->hasAttribute("EditorWidth")) {
                 editorWidth = xmlState->getIntAttribute("EditorWidth");
@@ -303,24 +339,11 @@ void AudioProcessorCommon::setStateInformation(const void* data, int sizeInBytes
             if (audioProcessorEditor != nullptr && editorWidth > 0 && editorHeight > 0) {
                 audioProcessorEditor->setSize(editorWidth, editorHeight);
             }
-            
-            // Reinit midiDevice
-            String midiDeviceInputName = xmlState->getStringAttribute("MidiDeviceInputName");
-            String midiDeviceOutputName = xmlState->getStringAttribute("MidiDeviceOutputName");
-            if (midiDeviceInputName.length() > 0 && midiDeviceOutputName.length() > 0) {
-                midiDeviceNumber = midiDevice->openDevice(midiDeviceNumber, midiDeviceInputName, midiDeviceOutputName);
-            }
 
-            // Different for Ambika and Shurthi
-            setStateParamSpecific(xmlState);
-
-
-			// REDRAW UI
+            // REDRAW UI
 			for (int p = 0; p < parameterSet.size(); p++) {
 				parameterUpdatedForUI(p);
 			}
-
-            sendPatchToSynth();
         }
 	}
 }
@@ -451,10 +474,12 @@ void AudioProcessorCommon::onParameterUpdated(AudioProcessorParameter *parameter
 }
 
 void AudioProcessorCommon::flushMidiOut() {
-    if (!midiDevice->sendBlockOfMessagesNow(midiDeviceNumber, midiOutBuffer)) {
-        if (askForMidiDevice) {
-            askForMidiDevice = false;
-            choseNewMidiDevice();
+    if (!muteMidiDuringInitialisation) {
+        if (!midiDevice->sendBlockOfMessagesNow(midiDeviceNumber, midiOutBuffer)) {
+            if (askForMidiDevice) {
+                askForMidiDevice = false;
+                choseNewMidiDevice();
+            }
         }
     }
 	midiOutBuffer.clear();
@@ -466,43 +491,13 @@ void AudioProcessorCommon::setPresetName(String newName) {
 
 
 
-void AudioProcessorCommon::sendPatchToSynth() {
-
-    // SEND SYSEX
-    DBG(" SEND SYSEX --------------------------");
-    uint8 sysexMessage[256];
-    uint8 patch[92];
-
-    encodeSysexPatch(patch);
-
-    uint8 startSysex[7] = { 0x00, 0x21, 0x02, // (Manufacturer ID for Mutable Instruments)
-        0x00,  0x02, // (Product ID for Shruthi)
-        0x01, // Command to send patch
-        0x00 // // No argument
-    };
-    memcpy(sysexMessage, startSysex, 7);
-    int index = 7;
-    int checkSum = 0;
-
-    for (int s = 0; s < 92; s++) {
-        sysexMessage[index++] = patch[s] >> 4;
-        sysexMessage[index++] = patch[s] & 0xf;
-
-        checkSum = (checkSum + patch[s]) % 256;
-    }
-
-    sysexMessage[index++] = checkSum >> 4;
-    sysexMessage[index++] = checkSum & 0xf;
-
-    sendSysex(MidiMessage::createSysExMessage(sysexMessage, index));
-
-    flushMidiOut();
-}
 
 
 
 void AudioProcessorCommon::sendSysex(const MidiMessage& sysexMessage) {
-    midiOutBuffer.addEvent(sysexMessage, 8);
+    // int now = Time::getMillisecondCounter();
+    DBG("SEND SYSEX : size : " << sysexMessage.getSysExDataSize());
+    midiOutBuffer.addEvent(sysexMessage, 0);
     flushMidiOut();
 }
 
@@ -563,6 +558,7 @@ void AudioProcessorCommon::handleIncomingMidiMessage(MidiInput *source, const Mi
         uint8 command = message[5];
         uint8 param = message[6];
         uint8 actualCommand = command;
+
         DBG("SYSEX Command : " << command << " Argument : " << param << " Size : " << ((midiMessage.getSysExDataSize() - 9) / 2));
 
         if (receivingMultiPart) {
@@ -578,12 +574,13 @@ void AudioProcessorCommon::handleIncomingMidiMessage(MidiInput *source, const Mi
             break;
         }
         case 4: {
-            if (!receivingMultiPart) {
-                DBG("SYSEX MULTI PART!!! argument : " << param << " Size : " << midiMessage.getSysExDataSize());
+            DBG("Current part : "<< currentPart << "SYSEX MULTI PART ("<< (canReceiveMultiPart ? "Can" : "CANNOT") <<") argument : " << param << " Size : " << midiMessage.getSysExDataSize());
+            if (canReceiveMultiPart && !receivingMultiPart) {
+                canReceiveMultiPart = false;
                 receivingMultiPart = true;
                 decodeMultiData(message + 7);
             }
-            else {
+            else if (receivingMultiPart) {
                 if (actualCommand == 5 && param == 6) {
                     DBG("END OF SYSEX MULTI PART!!!");
                     // End of the infos !
@@ -638,4 +635,13 @@ void AudioProcessorCommon::pushButtonPressed() {
 
 void AudioProcessorCommon::pullButtonPressed() {
     requestPatchTransfer();
+}
+
+
+void AudioProcessorCommon::setSelectedTab(int t) {
+    this->selectedTab = t;
+}
+
+int AudioProcessorCommon::getSelectedTab() {
+    return this->selectedTab;
 }
