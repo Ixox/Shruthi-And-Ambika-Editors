@@ -526,6 +526,8 @@ void PanelSequencer::updateSequencerSteps() {
         if (seqRhythmic[s]->getSelectedId() == 2) {
             sequencer.seqNotes[s].data2 |= 0x80;
         }
+        sequencer.seqController1[s] = seq1Steps[s]->getValue();
+        sequencer.seqController2[s] = seq2Steps[s]->getValue();
     }
 }
 
@@ -644,6 +646,9 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
         for (int s = 0; s < 16; s++) {
             if (comboBoxThatHasChanged == seqRhythmic[s]) {
                 mustRedrawSequencer = true;
+                for (int clean = 0; clean < 16; clean++) {
+                    newEvents[clean] = 0;
+                }
                 newEvents[s] = seqRhythmic[s]->getSelectedId();
                 uint8 data1 = seqScore->getNote(s) + (seqNoteOctave[s]->getSelectedId() + 1) * 12;
                 if (seqRhythmic[s]->getSelectedId() <= 2) {

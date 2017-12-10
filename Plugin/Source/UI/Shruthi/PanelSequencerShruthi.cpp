@@ -674,6 +674,9 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
         for (int s = 0; s < 16; s++) {
             if (comboBoxThatHasChanged == seqRhythmic[s]) {
                 sequencerModified = true;
+                for (int clean = 0; clean < 16; clean++) {
+                    newEvents[clean] = 0;
+                }
                 mustRedrawSequencer = true;
                 newEvents[s] = seqRhythmic[s]->getSelectedId();
                 break;
@@ -686,9 +689,7 @@ void PanelSequencer::comboBoxChanged(ComboBox* comboBoxThatHasChanged, bool from
             seqScore->setEvents(newEvents);
             seqScore->repaint();
         }
-
     }
-
 
     if (comboBoxThatHasChanged == seqNumberOfStep) {
         int stepMax = seqNumberOfStep->getSelectedId() - 1;

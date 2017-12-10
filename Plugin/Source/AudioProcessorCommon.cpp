@@ -320,15 +320,12 @@ void AudioProcessorCommon::setStateInformation(const void* data, int sizeInBytes
             }
             currentMidiChannel = xmlState->getIntAttribute("MidiChannel", 1);
             settingsChangedForUI();
-                     
-            // Flush patch 
-            sendPatchToSynth();
 
             // Different for Ambika and Shurthi
             setStateParamSpecific(xmlState);
 
-
-            // UI
+            // Flush patch 
+            sendPatchToSynth();
 
             if (xmlState->hasAttribute("EditorWidth")) {
                 editorWidth = xmlState->getIntAttribute("EditorWidth");
@@ -497,7 +494,7 @@ void AudioProcessorCommon::setPresetName(String newName) {
 void AudioProcessorCommon::sendSysex(const MidiMessage& sysexMessage) {
     // int now = Time::getMillisecondCounter();
     DBG("SEND SYSEX : size : " << sysexMessage.getSysExDataSize());
-    midiOutBuffer.addEvent(sysexMessage, 0);
+    midiOutBuffer.addEvent(sysexMessage, 1);
     flushMidiOut();
 }
 

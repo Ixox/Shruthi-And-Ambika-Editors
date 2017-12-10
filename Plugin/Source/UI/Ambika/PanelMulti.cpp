@@ -166,7 +166,7 @@ PanelMulti::PanelMulti ()
                 }
             }
         }
-        partNoteEnd[l]->setSelectedId(1);
+        partNoteEnd[l]->setSelectedId(128);
         partNoteEnd[l]->setScrollWheelEnabled(true);
         partNoteEnd[l]->addListener(this);
 

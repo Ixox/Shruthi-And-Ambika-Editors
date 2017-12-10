@@ -200,7 +200,6 @@ void SequencerScore::setNotes(int* newNotes) {
 
 void SequencerScore::setEvents(int* newEvents) {
     for (int s = 0; s < 16; s++) {
-//        DBG("NEW EVENT : " << s << " value : " << newEvents[s]);
         if (newEvents[s] >= 1 && newEvents[s] <= 3) {
             events[s] = newEvents[s];
         }
