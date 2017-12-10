@@ -535,9 +535,9 @@ void PanelModulation::buildParameters() {
     // Initialize paramMap for enveloppe
     const char** pointName = enveloppe[0]->getPointSuffix();
     for (int p = 1; p < enveloppe[0]->getNumberOfPoints(); p++) {
-        checkParamExistence("Env1" + String(pointName[p - 1]));
-        checkParamExistence("Env2" + String(pointName[p - 1]));
-        checkParamExistence("Env3" + String(pointName[p - 1]));
+        updateUIEnveloppe("Env1" + String(pointName[p - 1]));
+        updateUIEnveloppe("Env2" + String(pointName[p - 1]));
+        updateUIEnveloppe("Env3" + String(pointName[p - 1]));
     }
 
 	// Let listen to enveloppe

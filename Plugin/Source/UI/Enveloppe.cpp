@@ -133,6 +133,7 @@ void Enveloppe::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& whe
             notifyObservers(overPointIndex, false);
             break;
         }
+        repaint();
     }
 };
 
