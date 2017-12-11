@@ -40,8 +40,8 @@
 */
 
 #include "JuceHeader.h"
-#include "Enveloppe.h"
-#include "PanelOfComponents.h"
+#include "../Enveloppe.h"
+#include "../PanelOfComponents.h"
 
 #define NUMBER_OF_VOICES 3
 

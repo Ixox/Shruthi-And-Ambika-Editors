@@ -41,7 +41,7 @@
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
-#include "../AudioProcessorCommon.h"
+#include "../../AudioProcessorCommon.h"
 #include "../sequencer_settings.h"
 
 const char* seqAllLabeItems[] = { "Mode" , "Bpm", "Groove", "Amount", "Direction", "Range", "Pattern", "Division", "Number of Steps"};

@@ -163,10 +163,22 @@
                postbuildCommand="" vst3Folder="~/SDKs/VST3 SDK" extraCompilerFlags="-std=c++11&#10;-stdlib=libc++"
                extraLinkerFlags="-std=c++11&#10;-stdlib=libc++" bigIcon="rxcUSn">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="64BitUniversal"
-                       isDebug="1" optimisation="1" targetName="ShruthiEditor" headerPath="/Users/xhosxe/dev/VST3 SDK"/>
-        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.7 SDK" osxArchitecture="64BitUniversal"
-                       isDebug="0" optimisation="2" targetName="ShruthiEditor" headerPath="/Users/xhosxe/dev/VST3 SDK"/>
+        <CONFIGURATION name="Shruthi_Debug" osxSDK="default" osxCompatibility="10.7 SDK"
+                       osxArchitecture="64BitUniversal" isDebug="1" optimisation="1"
+                       targetName="ShruthiEditorDebug" headerPath="/Users/xhosxe/dev/VST3 SDK"
+                       defines="SHRUTHI=1"/>
+        <CONFIGURATION name="Shruthi_Release" osxSDK="default" osxCompatibility="10.7 SDK"
+                       osxArchitecture="64BitUniversal" isDebug="0" optimisation="2"
+                       targetName="ShruthiEditor" headerPath="/Users/xhosxe/dev/VST3 SDK"
+                       defines="SHRUTHI=1"/>
+        <CONFIGURATION name="Ambika_Debug" osxSDK="default" osxCompatibility="10.7 SDK"
+                       osxArchitecture="64BitUniversal" isDebug="1" optimisation="1"
+                       targetName="AmbikaEditorDebug" headerPath="/Users/xhosxe/dev/VST3 SDK"
+                       defines="AMBIKA=1"/>
+        <CONFIGURATION name="Ambika_Release" osxSDK="default" osxCompatibility="10.7 SDK"
+                       osxArchitecture="64BitUniversal" isDebug="0" optimisation="2"
+                       targetName="AmbikaEditor" headerPath="/Users/xhosxe/dev/VST3 SDK"
+                       defines="AMBIKA=1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../juce"/>

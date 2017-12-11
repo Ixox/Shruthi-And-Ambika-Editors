@@ -463,7 +463,7 @@ void AudioProcessorAmbika::requestPatchTransfer() {
 
 
 void AudioProcessorAmbika::requestPartDataTransfer() {
-    char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x15, 0x00, 0x00, 0x00 };
+    uint8 command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x15, 0x00, 0x00, 0x00 };
     command[6] = currentPart;
     canReceiveSysexPartData = true;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
@@ -471,14 +471,14 @@ void AudioProcessorAmbika::requestPartDataTransfer() {
 
 
 void AudioProcessorAmbika::requestSequencerTransfer() {
-    char command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x12, 0x00, 0x00, 0x00 };
+    uint8 command[] = { 0x00, 0x21, 0x02, 0x00, 0x04, 0x12, 0x00, 0x00, 0x00 };
     command[6] = currentPart;
     canReceiveSysexSequencer = true;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
 }
 
 void AudioProcessorAmbika::requestMultiDataTransfer() {
-    char command[] = { 0x00, 0x21, 0x02, 0x00, 0xff, 20, 0x00, 0x00, 0x00 };
+    uint8 command[] = { 0x00, 0x21, 0x02, 0x00, 0xff, 20, 0x00, 0x00, 0x00 };
     command[4] = sysexMachineCode();
     canReceiveMultiPart = true;
     sendSysex(MidiMessage::createSysExMessage(command, 9));
@@ -746,7 +746,7 @@ void AudioProcessorAmbika::sendPatchToSynth() {
     uint8 startSysex[7] = { 0x00, 0x21, 0x02, // (Manufacturer ID for Mutable Instruments)
         0x00,  0x04, // (Product ID for Ambika)
         0x01, // Command to send patch
-        currentPart // Send to CurrentPart !!!!
+        (uint8)currentPart // Send to CurrentPart !!!!
     };
 
     memcpy(sysexMessage, startSysex, 7);

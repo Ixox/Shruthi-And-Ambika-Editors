@@ -38,11 +38,11 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "JuceHeader.h"
-#include "../AudioProcessorCommon.h"
-#include "PanelOfComponents.h"
-#include "SliderPfm2.h"
-#include "SequencerScore.h"
-#include "ShruthiSequencer.h"
+#include "../../AudioProcessorCommon.h"
+#include "../PanelOfComponents.h"
+#include "../SliderPfm2.h"
+#include "../SequencerScore.h"
+#include "../ShruthiSequencer.h"
 #include "AmbikaSequencer.h"
 
 #define NUMBER_OF_STEPS 16

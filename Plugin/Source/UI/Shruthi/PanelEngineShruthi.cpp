@@ -38,8 +38,8 @@
 */
 
 #include "JuceHeader.h"
-#include "SliderPfm2.h"
-#include "../AudioProcessorCommon.h"
+#include "../SliderPfm2.h"
+#include "../../AudioProcessorCommon.h"
 
 //[/Headers]
 

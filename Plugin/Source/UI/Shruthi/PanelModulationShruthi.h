@@ -40,9 +40,9 @@
 */
 
 #include "JuceHeader.h"
-#include "Enveloppe.h"
-#include "PanelOfComponents.h"
-#include "ComboAndSlider.h"
+#include "../Enveloppe.h"
+#include "../PanelOfComponents.h"
+#include "../ComboAndSlider.h"
 
 #define NUMBER_OF_STEP_SEQ 2
 #define NUMBER_OF_LFO 2

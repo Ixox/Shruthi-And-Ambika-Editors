@@ -38,11 +38,11 @@
 */
 
 #include "JuceHeader.h"
-#include "SliderPfm2.h"
-#include "../Utils/MidifiedFloatParameter.h"
+#include "../SliderPfm2.h"
+#include "../../Utils/MidifiedFloatParameter.h"
+#include "PanelModulationShruthi.h"
 //[/Headers]
 
-#include "PanelModulation.h"
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
