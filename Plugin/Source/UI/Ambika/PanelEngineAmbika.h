@@ -127,15 +127,19 @@ private:
     ScopedPointer<Label> osc1SubClickLabel;
     ScopedPointer<ComboBox> osc1SubClick;
 
-    ScopedPointer<Label> filterCutoffLabel;
-    ScopedPointer<Slider> filterCutoff;
-    ScopedPointer<Label> filterResonnanceLabel;
-    ScopedPointer<Slider> filterResonnance;
+    ScopedPointer<Label> filterFreqLabel;
+    ScopedPointer<Slider> filterFreq;
+    ScopedPointer<Label> filterResonanceLabel;
+    ScopedPointer<Slider> filterResonance;
     ScopedPointer<Label> filterEnvLabel;
     ScopedPointer<Slider> filterEnv;
     ScopedPointer<Label> filterLfoLabel;
     ScopedPointer<Slider> filterLfo;
     ScopedPointer<Label> filterModeLabel;
+    ScopedPointer<Slider> filterVelocity;
+    ScopedPointer<Label> filterVelocityLabel;
+    ScopedPointer<Slider> filterKeyboard;
+    ScopedPointer<Label> filterKeyboardLabel;
     ScopedPointer<ComboBox> filterMode;
 
     // Tuning

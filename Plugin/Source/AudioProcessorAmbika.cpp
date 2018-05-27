@@ -138,12 +138,12 @@ void AudioProcessorAmbika::initAllParameters() {
     // ================== FILTER ===========================================================================
     //Filter cutoff	0 - 127	12	14, 74
     nrpmParam = 16;
-    newParam = new MidifiedFloatParameter(String("Filter Cutoff"), nrpmParam, 1, 0, 127, 63);
+    newParam = new MidifiedFloatParameter(String("Filter Freq"), nrpmParam, 1, 0, 127, 63);
     addMidifiedParameter(newParam);
     nrpmIndex[nrpmParam] = parameterIndex++;
     //Filter resonance	0 - 63	13	15, 71
     nrpmParam = 17;
-    newParam = new MidifiedFloatParameter(String("Filter Resonnance"), nrpmParam, 1, 0, 63, 0);
+    newParam = new MidifiedFloatParameter(String("Filter Resonance"), nrpmParam, 1, 0, 63, 0);
     addMidifiedParameter(newParam);
     nrpmIndex[nrpmParam] = parameterIndex++;
     //Filter Mod	0 - 63	13	15, 71
@@ -161,6 +161,19 @@ void AudioProcessorAmbika::initAllParameters() {
     newParam = new MidifiedFloatParameter(String("Filter Lfo"), nrpmParam, 1, 0, 63, 0);
     addMidifiedParameter(newParam);
     nrpmIndex[nrpmParam] = parameterIndex++;
+    // Filter Velocity
+    nrpmParam = 104;
+    newParam = new MidifiedFloatParameter(String("Filter Velocity"), nrpmParam, 1, 0, 63, 0);
+    addMidifiedParameter(newParam);
+    nrpmIndex[nrpmParam] = parameterIndex++;
+
+    // Filter Keyboard
+    nrpmParam = 105;
+    newParam = new MidifiedFloatParameter(String("Filter Keyboard"), nrpmParam, 1, -63, 63, 0);
+    addMidifiedParameter(newParam);
+    nrpmIndex[nrpmParam] = parameterIndex++;
+
+
     // Filter Type
 
     // =========== Envelope ==============================
@@ -200,21 +213,6 @@ void AudioProcessorAmbika::initAllParameters() {
         nrpmIndex[nrpmParam] = parameterIndex++;
     }
 
-    // MATRIX
-    const char* matrixSourceNames[] = {
-        "Lfo 1","Lfo 2","Sequencer","Seq 1","Seq 2","Arpegiator","M Wheel","Aftertouch","Bender",
-        "Offset","cv1","cv2","cv3","cv4","ccA (16)","ccB (17)","Bre (18)","Ped (19)","Noise",
-        "Envelope 1","Envelope 2","Velocity","Random","Note","Gate","Audio","Operator 1","Operator 2", nullptr
-    };
-
-    // 27
-    const char* matrixDestNames[] = {
-        "Pwm1","Pwm2","Osc 1","Osc 2","Osc 1+2","Osc 1+2 fine","Mix","Noise","Sub Osc","Cutoff","Resonnance",
-        "Vca","Cv1", "Cv2",
-        "Env1 trigger","Env1 Attk","Env1 Dec","Env1 Sust","Env1 Rel","Env2 trigger","Env2 Attk",
-        "Env2 Dec","Env2 Sust", "Env2 Rel","Env1+2 Attk","Lfo1 Rate","Lfo2 Rate",
-        nullptr
-    };
 
     const int defaultSources[12] = { 0,0,1,1,1,2,21,21,20,21,8,0 };
     const int defaultAmount[12] = { 0,0,0,0,0,0,0,0,63,16,32,16 };

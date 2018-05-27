@@ -59,7 +59,7 @@ const char* modiferSourceAdditionalNames[] = { "= 128", "= 64", "= 32", "= 16", 
 // 27
 const char* matrixDestNames[] = {
 "Osc1 Param","Osc2 Param", "Osc1 Pitc", "Osc2 Pitch","Osc1&2 Pitch","Fine pitch", "Mix balance",
-"Cross mod","Noise","Sub Osc", "Fuzz","Crush", "Filter Cutoff","Filter Res", "Attack", 
+"Cross mod","Noise","Sub Osc", "Fuzz","Crush", "Filter Freq","Filter Res", "Attack", 
 "Devay","Release", "Voice Lfo","VCA Gain", nullptr
 };
 
@@ -97,7 +97,7 @@ PanelModulation::PanelModulation ()
                                                          TRANS("Modulation")));
 
     addAndMakeVisible (operatorsGroup = new GroupComponent ("operatorsGroup",
-                                                            TRANS("Operators")));
+                                                            TRANS("Modifiers")));
 
     addAndMakeVisible (lfoVoiceGroup = new GroupComponent ("Lfo Voice Group",
                                                            TRANS("Lfo Voice")));

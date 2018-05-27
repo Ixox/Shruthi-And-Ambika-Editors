@@ -73,7 +73,7 @@ const char* oscShapes[] = {
  "hp zSaw", "lp zPulse", "pk zPulse", "bp zPulse", "hp zPulse", "zTriangle", "Pad", "FM",
  "8 bits", "Pwm", "Noise", "Vowel", "Mmale", "Female", "Choir", "Tampura", "Bowed", "Cello",
  "Vibes", "Slap bass", "E-Piano", "Organ", "Waves", "Digital PPG", "Drone 1", "Drone 2", "Metallic",
- "Bell", "Wavquence", nullptr
+ "Bell", "Wavquence", "old saw (YAM)", "qpwm (YAM)", "fmfb (YAM)", "csaw (YAM)", nullptr
 };
 const char* mixSubOscShapeTexts[] = {
     "Square Sub -1", "Triangle Sub -1", "Pulse Sub -1", "Square Sub -2", "Triangle Sub -2", "Pulse Sub -2", "Click", "Glitch Click", "Blow Click", "Metal Click", "Pop Click", nullptr
@@ -106,7 +106,7 @@ PanelEngine::PanelEngine ()
 
     addAndMakeVisible (filterGroup = new GroupComponent ("Filter Group",
                                                          TRANS("Filter")));
-    filterGroup->setColour (GroupComponent::outlineColourId, Colour (0xffad7277));
+    filterGroup->setColour (GroupComponent::outlineColourId, Colour (0xff8e989b));
     filterGroup->setColour (GroupComponent::textColourId, Colours::white);
 
     addAndMakeVisible (infoButton = new ImageButton ("Info Button"));
@@ -122,6 +122,7 @@ PanelEngine::PanelEngine ()
 
     addAndMakeVisible (infoGroup = new GroupComponent ("Info Group",
                                                        TRANS("Info")));
+    infoGroup->setColour (GroupComponent::outlineColourId, Colours::yellow);
 
 
     //[UserPreSize]
@@ -237,27 +238,27 @@ PanelEngine::PanelEngine ()
 
     //newParam = new MidifiedFloatParameter(String("Filter Cutoff"), nrpmParam, 1, 0, 127, 0);
 
-    addAndMakeVisible(filterCutoffLabel = new Label("Filter Cutoff label", "Cutoff"));
-    filterCutoffLabel->setJustificationType(Justification::centred);
+    addAndMakeVisible(filterFreqLabel = new Label("Filter Freq label", "Frequency"));
+    filterFreqLabel->setJustificationType(Justification::centred);
 
-    addAndMakeVisible(filterCutoff = new SliderPfm2("Filter Cutoff"));
-    filterCutoff->setRange(0, 127, 1);
-    filterCutoff->setSliderStyle(Slider::RotaryVerticalDrag);
-    filterCutoff->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
-    filterCutoff->setDoubleClickReturnValue(true, 63.0f);
-    filterCutoff->addListener(this);
+    addAndMakeVisible(filterFreq = new SliderPfm2("Filter Freq"));
+    filterFreq->setRange(0, 127, 1);
+    filterFreq->setSliderStyle(Slider::RotaryVerticalDrag);
+    filterFreq->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
+    filterFreq->setDoubleClickReturnValue(true, 63.0f);
+    filterFreq->addListener(this);
 
-    //newParam = new MidifiedFloatParameter(String("Filter Resonnance"), nrpmParam, 1, 0, 63, 0);
+    //newParam = new MidifiedFloatParameter(String("Filter Resonance"), nrpmParam, 1, 0, 63, 0);
 
-    addAndMakeVisible(filterResonnanceLabel = new Label("Filter Resonnance label", "Resonnance"));
-    filterResonnanceLabel->setJustificationType(Justification::centred);
+    addAndMakeVisible(filterResonanceLabel = new Label("Filter Resonance label", "Resonance"));
+    filterResonanceLabel->setJustificationType(Justification::centred);
 
-    addAndMakeVisible(filterResonnance = new SliderPfm2("Filter Resonnance"));
-    filterResonnance->setRange(0, 63, 1);
-    filterResonnance->setSliderStyle(Slider::RotaryVerticalDrag);
-    filterResonnance->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
-    filterResonnance->setDoubleClickReturnValue(true, 0.0f);
-    filterResonnance->addListener(this);
+    addAndMakeVisible(filterResonance = new SliderPfm2("Filter Resonance"));
+    filterResonance->setRange(0, 63, 1);
+    filterResonance->setSliderStyle(Slider::RotaryVerticalDrag);
+    filterResonance->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
+    filterResonance->setDoubleClickReturnValue(true, 0.0f);
+    filterResonance->addListener(this);
 
     addAndMakeVisible(filterModeLabel= new Label("Filter Mode label", "Mode"));
     filterModeLabel->setJustificationType(Justification::centred);
@@ -277,7 +278,7 @@ PanelEngine::PanelEngine ()
 
     //newParam = new MidifiedFloatParameter(String("Enveloppe->Cutoff"), nrpmParam, 1, 0, 63, 0);
 
-    addAndMakeVisible(filterEnvLabel = new Label("Filter Env label", "Env2->Cutoff"));
+    addAndMakeVisible(filterEnvLabel = new Label("Filter Env label", "Env2->Freq"));
     filterEnvLabel->setJustificationType(Justification::centred);
 
     addAndMakeVisible(filterEnv = new SliderPfm2("Filter Env"));
@@ -289,7 +290,7 @@ PanelEngine::PanelEngine ()
 
     //newParam = new MidifiedFloatParameter(String("Lfo->Cutoff"), nrpmParam, 1, 0, 63, 0);
 
-    addAndMakeVisible(filterLfoLabel = new Label("Filter Lfo label", "Lfo2->Cutoff"));
+    addAndMakeVisible(filterLfoLabel = new Label("Filter Lfo label", "Lfo2->Freq"));
     filterLfoLabel->setJustificationType(Justification::centred);
 
     addAndMakeVisible(filterLfo = new SliderPfm2("Filter Lfo"));
@@ -298,6 +299,31 @@ PanelEngine::PanelEngine ()
     filterLfo->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
     filterLfo->setDoubleClickReturnValue(true, 0.0f);
     filterLfo->addListener(this);
+
+    //newParam = new MidifiedFloatParameter(String("Filter Velocity"), nrpmParam, 1, 0, 63, 0);
+
+    addAndMakeVisible(filterVelocityLabel = new Label("Filter Velocity Label", "Velo->Freq (YAM)"));
+    filterVelocityLabel->setJustificationType(Justification::centred);
+
+    addAndMakeVisible(filterVelocity = new SliderPfm2("Filter Velocity"));
+    filterVelocity->setRange(0, 63, 1);
+    filterVelocity->setSliderStyle(Slider::RotaryVerticalDrag);
+    filterVelocity->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
+    filterVelocity->setDoubleClickReturnValue(true, 0.0f);
+    filterVelocity->addListener(this);
+
+    //newParam = new MidifiedFloatParameter(String("Filter Keyboard"), nrpmParam, 1, 0, 63, 0);
+
+    addAndMakeVisible(filterKeyboardLabel = new Label("Filter Keyboard Label", "Keyb->Freq (YAM)"));
+    filterKeyboardLabel->setJustificationType(Justification::centred);
+
+    addAndMakeVisible(filterKeyboard = new SliderPfm2("Filter Keyboard"));
+    filterKeyboard->setRange(-63, 63, 1);
+    filterKeyboard->setSliderStyle(Slider::RotaryVerticalDrag);
+    filterKeyboard->setTextBoxStyle(Slider::TextBoxAbove, false, 30, 16);
+    filterKeyboard->setDoubleClickReturnValue(true, 0.0f);
+    filterKeyboard->addListener(this);
+
 
     //
     // Mixer
@@ -641,31 +667,37 @@ void PanelEngine::resized()
     filterGroup->setBounds(filterBounds.reduced(10, 5));
 
     // Info Button
-    int toCut = filterBounds.getWidth() / 5;
+    int toCut = filterBounds.getWidth() / 7;
     infoGroup->setBounds(filterBounds.removeFromRight(toCut).reduced(10, 5));
     infoButton->setBounds(infoGroup->getBounds().reduced(infoGroup->getBounds().getWidth() / 3, infoGroup->getBounds().getHeight() / 3));
-    filterBounds.removeFromLeft(toCut);
+
+//    filterBounds.removeFromLeft(toCut);
     filterGroup->setBounds(filterBounds.reduced(10, 5));
 
 
-    numberInRow = 5;
+    numberInRow = 7;
 
     filterBounds = filterGroup->getBounds();
     filterBounds.removeFromTop(20);
     labelBounds = filterBounds.removeFromTop(20);
 
     filterModeLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
-    filterCutoffLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
-    filterResonnanceLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+    filterFreqLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+    filterResonanceLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
     filterEnvLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
     filterLfoLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+    filterVelocityLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+    filterKeyboardLabel->setBounds(labelBounds.removeFromLeft(labelBounds.getWidth() / numberInRow--));
+
     filterBounds.removeFromTop(10);
-    numberInRow = 5;
+    numberInRow = 7;
     filterMode->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, filterBounds.getHeight() / 2 - 10));
-    filterCutoff->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
-    filterResonnance->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
+    filterFreq->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
+    filterResonance->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
     filterEnv->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
     filterLfo->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
+    filterVelocity->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
+    filterKeyboard->setBounds(filterBounds.removeFromLeft(filterBounds.getWidth() / numberInRow--).reduced(10, 0));
 
 
     // -------------------------------------------
@@ -798,10 +830,12 @@ void PanelEngine::buildParameters() {
     updateSliderFromParameter(osc2Param);
     updateSliderFromParameter(osc2Range);
     updateSliderFromParameter(osc2Detune);
-    updateSliderFromParameter(filterCutoff);
-    updateSliderFromParameter(filterResonnance);
+    updateSliderFromParameter(filterFreq);
+    updateSliderFromParameter(filterResonance);
     updateSliderFromParameter(filterEnv);
     updateSliderFromParameter(filterLfo);
+    updateSliderFromParameter(filterKeyboard);
+    updateSliderFromParameter(filterVelocity);
     updateComboFromParameter(filterMode);
     updateSliderFromParameter(mixBalance);
     updateComboFromParameter(mixOp);
@@ -882,7 +916,7 @@ BEGIN_JUCER_METADATA
                   title="Mixer"/>
   <GROUPCOMPONENT name="Filter Group" id="6e8f214af349f96d" memberName="filterGroup"
                   virtualName="" explicitFocusOrder="0" pos="17.551% 43.573% 66.879% 20.044%"
-                  outlinecol="ffad7277" textcol="ffffffff" title="Filter"/>
+                  outlinecol="ff8e989b" textcol="ffffffff" title="Filter"/>
   <IMAGEBUTTON name="Info Button" id="bd0f020830de2111" memberName="infoButton"
                virtualName="" explicitFocusOrder="0" pos="87.757% 47.93% 7.148% 11.329%"
                tooltip="Some Info" buttonText="" connectedEdges="0" needsCallback="0"
@@ -895,7 +929,7 @@ BEGIN_JUCER_METADATA
                   title="Part tuning"/>
   <GROUPCOMPONENT name="Info Group" id="a34cf8d753760e42" memberName="infoGroup"
                   virtualName="" explicitFocusOrder="0" pos="85.492% 44.444% 11.536% 19.172%"
-                  title="Info"/>
+                  outlinecol="ffffff00" title="Info"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
