@@ -3,10 +3,9 @@
 Here is the github repository of the Ixox Shruthi Editor. <br />
 I used the very nice [JUCE library](https://www.juce.com/discover) to develop them.<br />
 Binaries are available in the Releases area, <a href="https://github.com/Ixox/Shruthi-And-Ambika-Editors/releases">here</a>.<br />
-They are open source and free to try... but please follow the paypal link (after clicking on the info button) if you like and use them. <br />
-They are reasonably priced : <b>10€ for the Shruthi Editor, and 15€ for the Ambika</b>.<br />
-Thanks <br />
-<br />
+They are open source and free to use.
+<br /><br />
+
 You'll find binaries for both mac (10.7+) and windows (win32 and x64). They're available as standalone editors and as a plugins (VST and AU).<br />
 A big advantage of those editors is that they talk directly to your synth, so they are very easy to setup and should work with all DAWs (yes NRPN will reach your shruthi/Ambioka even with ableton live). <br />
 I also hope you'll enjoy the resizable clean interface and the ease of use. <br /><br />
